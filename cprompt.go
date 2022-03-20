@@ -42,23 +42,36 @@ func (m Model) View() string {
 func (m completerModel) completer(document prompt.Document, promptModel prompt.Model) []input.Suggestion {
 	suggestions := []input.Suggestion{}
 
-	for _, c := range m.rootCmd.Commands() {
-		if !slices.Contains(m.ignoreCmds, c.Name()) {
-			placeholders := placeholders(c)
-			args := []input.PositionalArg{}
-			for _, arg := range placeholders {
-				args = append(args, input.NewPositionalArg(arg))
+	if len(m.textInput.ParsedValue().Args.Value) == 0 {
+		for _, c := range m.rootCmd.Commands() {
+			if !slices.Contains(m.ignoreCmds, c.Name()) {
+				placeholders := placeholders(c)
+				args := []input.PositionalArg{}
+				for _, arg := range placeholders {
+					args = append(args, input.NewPositionalArg(arg))
+				}
+				suggestions = append(suggestions, input.Suggestion{
+					Text:           c.Name(),
+					Description:    c.Short,
+					PositionalArgs: args,
+					Metadata:       c,
+				})
 			}
-			suggestions = append(suggestions, input.Suggestion{
-				Text:           c.Name(),
-				Description:    c.Short,
-				PositionalArgs: args,
-				Metadata:       c,
-			})
 		}
+		return completers.FilterHasPrefix(m.textInput.CommandBeforeCursor(), suggestions)
+	} else {
+		cmd, _, _ := m.rootCmd.Find([]string{m.textInput.ParsedValue().Command.Value})
+		args, _ := cmd.ValidArgsFunction(cmd, m.textInput.AllValues()[1:], m.textInput.CurrentTokenBeforeCursor())
+		placeholders := placeholders(cmd)
+		posArgs := []input.PositionalArg{}
+		for _, arg := range placeholders {
+			posArgs = append(posArgs, input.NewPositionalArg(arg))
+		}
+		for _, arg := range args {
+			suggestions = append(suggestions, input.Suggestion{Text: arg, PositionalArgs: posArgs})
+		}
+		return suggestions
 	}
-
-	return completers.FilterHasPrefix(m.textInput.CommandBeforeCursor(), suggestions)
 }
 
 func (m completerModel) executor(input string, selected *input.Suggestion, suggestions []input.Suggestion) (tea.Model, error) {

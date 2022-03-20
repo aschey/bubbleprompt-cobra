@@ -5,6 +5,7 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"strings"
 	"time"
 
 	cprompt "github.com/aschey/bubbleprompt-cobra"
@@ -29,12 +30,22 @@ to quickly create a Cobra application.`,
 		})
 		return cprompt.ExecModel(cmd, model)
 	},
-	Args: cobra.ExactArgs(2),
+	Args: cobra.ExactValidArgs(2),
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		choices := []string{"arg1", "arg2"}
+		filtered := []string{}
+		for _, c := range choices {
+			if strings.HasPrefix(c, toComplete) {
+				filtered = append(filtered, c)
+			}
+		}
+		return filtered, cobra.ShellCompDirectiveDefault
+	},
 }
 
 func init() {
 	rootCmd.AddCommand(testCmd)
-	cprompt.SetPlaceholders(testCmd, "arg1", "arg2")
+	cprompt.SetPlaceholders(testCmd, "<arg1>", "<arg2>")
 
 	// Here you will define your flags and configuration settings.
 
