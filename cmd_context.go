@@ -8,12 +8,34 @@ import (
 
 const placeholderKey string = "placeholder"
 
-func placeholders(cmd *cobra.Command) []string {
+func cmdContext(cmd *cobra.Command) context.Context {
 	ctx := cmd.Context()
 	if ctx == nil {
-		return []string{}
+		return context.Background()
 	}
-	val := ctx.Value(cmd.Name() + placeholderKey)
+	return ctx
+}
+
+func keyPrefix(cmd *cobra.Command) string {
+	if cmd.HasParent() {
+		return cmd.Parent().Name() + cmd.Name()
+	}
+	return cmd.Name()
+}
+
+func contextVal(cmd *cobra.Command, key string) any {
+	ctx := cmdContext(cmd)
+	return ctx.Value(keyPrefix(cmd) + key)
+}
+
+func updateContext(cmd *cobra.Command, key string, val any) {
+	ctx := cmdContext(cmd)
+	ctx = context.WithValue(ctx, keyPrefix(cmd)+key, val)
+	cmd.SetContext(ctx)
+}
+
+func placeholders(cmd *cobra.Command) []string {
+	val := contextVal(cmd, placeholderKey)
 	if val == nil {
 		return []string{}
 	}
@@ -21,10 +43,5 @@ func placeholders(cmd *cobra.Command) []string {
 }
 
 func SetPlaceholders(cmd *cobra.Command, placeholders ...string) {
-	ctx := cmd.Context()
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	ctx = context.WithValue(ctx, cmd.Name()+placeholderKey, placeholders)
-	cmd.SetContext(ctx)
+	updateContext(cmd, placeholderKey, placeholders)
 }

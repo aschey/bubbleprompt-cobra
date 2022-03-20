@@ -28,8 +28,8 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	cprompt.SetPlaceholders(testCmd, "arg1", "arg2")
 	rootCmd.AddCommand(testCmd)
+	cprompt.SetPlaceholders(testCmd, "arg1", "arg2")
 
 	// Here you will define your flags and configuration settings.
 
