@@ -49,7 +49,12 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 			for _, arg := range placeholders {
 				args = append(args, input.NewPositionalArg(arg))
 			}
-			suggestions = append(suggestions, input.Suggestion{Text: c.Name(), Description: c.Short, PositionalArgs: args})
+			suggestions = append(suggestions, input.Suggestion{
+				Text:           c.Name(),
+				Description:    c.Short,
+				PositionalArgs: args,
+				Metadata:       c,
+			})
 		}
 	}
 
@@ -58,6 +63,8 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 
 func (m completerModel) executor(input string, selected *input.Suggestion, suggestions []input.Suggestion) (tea.Model, error) {
 	m.rootCmd.SetArgs(m.textInput.AllValues())
+	cmd := selected.Metadata.(*cobra.Command)
+	setInteractive(cmd)
 
 	rescueStdout := os.Stdout
 	rescueStderr := os.Stderr
@@ -69,12 +76,25 @@ func (m completerModel) executor(input string, selected *input.Suggestion, sugge
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout
 	os.Stderr = rescueStderr
-
-	return executors.NewStringModel(string(out)), err
+	model := model(cmd)
+	if model == nil {
+		return executors.NewStringModel(string(out)), err
+	}
+	return model, err
 }
 
 func (m *Model) SetIgnoreCmds(ignoreCmds ...string) {
 	m.completer.ignoreCmds = ignoreCmds
+}
+
+func ExecModel(cmd *cobra.Command, model tea.Model) error {
+	interactive := interactive(cmd)
+	if interactive {
+		setModel(cmd, model)
+		return nil
+	} else {
+		return tea.NewProgram(model).Start()
+	}
 }
 
 func NewPrompt(cmd *cobra.Command) Model {

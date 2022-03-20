@@ -3,10 +3,13 @@ package cprompt
 import (
 	"context"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
 
 const placeholderKey string = "placeholder"
+const modelKey string = "model"
+const interactiveKey = "interactive"
 
 func cmdContext(cmd *cobra.Command) context.Context {
 	ctx := cmd.Context()
@@ -17,6 +20,7 @@ func cmdContext(cmd *cobra.Command) context.Context {
 }
 
 func keyPrefix(cmd *cobra.Command) string {
+	// Include parent name to ensure key is unique in case of duplicate command names
 	if cmd.HasParent() {
 		return cmd.Parent().Name() + cmd.Name()
 	}
@@ -34,6 +38,18 @@ func updateContext(cmd *cobra.Command, key string, val any) {
 	cmd.SetContext(ctx)
 }
 
+func setInteractive(cmd *cobra.Command) {
+	updateContext(cmd, interactiveKey, true)
+}
+
+func interactive(cmd *cobra.Command) bool {
+	val := contextVal(cmd, interactiveKey)
+	if val == nil {
+		return false
+	}
+	return val.(bool)
+}
+
 func placeholders(cmd *cobra.Command) []string {
 	val := contextVal(cmd, placeholderKey)
 	if val == nil {
@@ -44,4 +60,16 @@ func placeholders(cmd *cobra.Command) []string {
 
 func SetPlaceholders(cmd *cobra.Command, placeholders ...string) {
 	updateContext(cmd, placeholderKey, placeholders)
+}
+
+func model(cmd *cobra.Command) tea.Model {
+	val := contextVal(cmd, modelKey)
+	if val == nil {
+		return nil
+	}
+	return val.(tea.Model)
+}
+
+func setModel(cmd *cobra.Command, model tea.Model) {
+	updateContext(cmd, modelKey, model)
 }
