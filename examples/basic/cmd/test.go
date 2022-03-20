@@ -7,6 +7,7 @@ package cmd
 import (
 	"fmt"
 
+	cprompt "github.com/aschey/bubbleprompt-cobra"
 	"github.com/spf13/cobra"
 )
 
@@ -23,9 +24,11 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(cmd.HasParent())
 	},
+	Args: cobra.ExactArgs(2),
 }
 
 func init() {
+	cprompt.SetPlaceholders(testCmd, "arg1", "arg2")
 	rootCmd.AddCommand(testCmd)
 
 	// Here you will define your flags and configuration settings.
