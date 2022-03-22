@@ -42,7 +42,7 @@ func (m Model) View() string {
 func (m completerModel) completer(document prompt.Document, promptModel prompt.Model) []input.Suggestion {
 	suggestions := []input.Suggestion{}
 
-	if len(m.textInput.ParsedValue().Args.Value) == 0 {
+	if !m.textInput.CommandCompleted() {
 		for _, c := range m.rootCmd.Commands() {
 			if !slices.Contains(m.ignoreCmds, c.Name()) {
 				placeholders := placeholders(c)
@@ -58,6 +58,7 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 				})
 			}
 		}
+
 		return completers.FilterHasPrefix(m.textInput.CommandBeforeCursor(), suggestions)
 	} else {
 		cmd, _, _ := m.rootCmd.Find([]string{m.textInput.ParsedValue().Command.Value})
@@ -68,8 +69,13 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 			posArgs = append(posArgs, input.NewPositionalArg(arg))
 		}
 		for _, arg := range args {
-			suggestions = append(suggestions, input.Suggestion{Text: arg, PositionalArgs: posArgs})
+			suggestions = append(suggestions, input.Suggestion{
+				Text:           arg,
+				PositionalArgs: posArgs,
+				Metadata:       cmd,
+			})
 		}
+
 		return suggestions
 	}
 }
