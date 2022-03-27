@@ -3,13 +3,13 @@ module examples
 go 1.18
 
 require (
+	github.com/aschey/bubbleprompt v0.0.0-20220319185949-c517fb442ade
 	github.com/aschey/bubbleprompt-cobra v0.0.0
 	github.com/spf13/cobra v1.4.1-0.20220318100158-f848943afd72
 )
 
 require (
 	github.com/alecthomas/participle/v2 v2.0.0-alpha7 // indirect
-	github.com/aschey/bubbleprompt v0.0.0-20220319185949-c517fb442ade // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/bubbles v0.10.4-0.20220301123521-e349920524a2 // indirect
 	github.com/charmbracelet/bubbletea v0.20.0 // indirect

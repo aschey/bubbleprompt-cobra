@@ -63,16 +63,10 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 	} else {
 		cmd, _, _ := m.rootCmd.Find([]string{m.textInput.ParsedValue().Command.Value})
 		args, _ := cmd.ValidArgsFunction(cmd, m.textInput.AllValues()[1:], m.textInput.CurrentTokenBeforeCursor())
-		placeholders := placeholders(cmd)
-		posArgs := []input.PositionalArg{}
-		for _, arg := range placeholders {
-			posArgs = append(posArgs, input.NewPositionalArg(arg))
-		}
 		for _, arg := range args {
 			suggestions = append(suggestions, input.Suggestion{
-				Text:           arg,
-				PositionalArgs: posArgs,
-				Metadata:       cmd,
+				Text:     arg,
+				Metadata: cmd,
 			})
 		}
 
