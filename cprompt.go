@@ -62,7 +62,8 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 		return completers.FilterHasPrefix(m.textInput.CommandBeforeCursor(), suggestions)
 	} else {
 		cmd, _, _ := m.rootCmd.Find([]string{m.textInput.ParsedValue().Command.Value})
-		args, _ := cmd.ValidArgsFunction(cmd, m.textInput.AllValues()[1:], m.textInput.CurrentTokenBeforeCursor())
+		text := m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp)
+		args, _ := cmd.ValidArgsFunction(cmd, m.textInput.AllValues()[1:], text)
 		for _, arg := range args {
 			suggestions = append(suggestions, input.Suggestion{
 				Text:     arg,

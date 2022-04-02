@@ -30,22 +30,31 @@ to quickly create a Cobra application.`,
 		})
 		return cprompt.ExecModel(cmd, model)
 	},
-	Args: cobra.ExactValidArgs(2),
+	Args: cobra.ExactValidArgs(3),
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		choices := []string{"arg1", "arg2"}
+		var choices []string
+		if (len(args) == 0 && len(toComplete) == 0) || (len(args) == 1 && len(toComplete) > 0) {
+			choices = []string{"abc", "abcd"}
+		} else if (len(args) == 1 && len(toComplete) == 0) || (len(args) == 2 && len(toComplete) > 0) {
+			choices = []string{"def", "defg"}
+		} else {
+			choices = []string{"hij", "hijk"}
+		}
+
 		filtered := []string{}
 		for _, c := range choices {
 			if strings.HasPrefix(c, toComplete) {
 				filtered = append(filtered, c)
 			}
 		}
+
 		return filtered, cobra.ShellCompDirectiveDefault
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(testCmd)
-	cprompt.SetPlaceholders(testCmd, "<arg1>", "<arg2>")
+	cprompt.SetPlaceholders(testCmd, "<arg1>", "<arg2>", "<arg3>")
 
 	// Here you will define your flags and configuration settings.
 
