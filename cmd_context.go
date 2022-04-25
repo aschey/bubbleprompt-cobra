@@ -55,7 +55,8 @@ func placeholders(cmd *cobra.Command) []string {
 	if val == nil {
 		return []string{}
 	}
-	return val.([]string)
+	strVal := val.([]string)
+	return strVal
 }
 
 func SetPlaceholders(cmd *cobra.Command, placeholders ...string) {

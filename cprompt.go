@@ -1,8 +1,9 @@
 package cprompt
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
+	"strings"
 
 	prompt "github.com/aschey/bubbleprompt"
 	completers "github.com/aschey/bubbleprompt/completer"
@@ -10,19 +11,26 @@ import (
 	"github.com/aschey/bubbleprompt/input"
 	"github.com/aschey/bubbleprompt/input/commandinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"golang.org/x/exp/slices"
 )
 
 type Model struct {
-	prompt    prompt.Model
+	prompt    prompt.Model[cobraMetadata]
 	completer completerModel
 }
 
 type completerModel struct {
-	textInput  *commandinput.Model
+	textInput  *commandinput.Model[cobraMetadata]
 	rootCmd    *cobra.Command
 	ignoreCmds []string
+}
+
+type cobraMetadata struct {
+	commandinput.CmdMetadata
+	cobraCommand *cobra.Command
 }
 
 func (m Model) Init() tea.Cmd {
@@ -39,46 +47,106 @@ func (m Model) View() string {
 	return m.prompt.View()
 }
 
-func (m completerModel) completer(document prompt.Document, promptModel prompt.Model) []input.Suggestion {
-	suggestions := []input.Suggestion{}
+func (m completerModel) completer(document prompt.Document, promptModel prompt.Model[cobraMetadata]) []input.Suggestion[cobraMetadata] {
+	suggestions := []input.Suggestion[cobraMetadata]{}
 
-	if !m.textInput.CommandCompleted() {
+	if m.textInput.CommandCompleted() {
+		cmd, _, _ := m.rootCmd.Find([]string{m.textInput.ParsedValue().Command.Value})
+
+		text := m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp)
+		tokenPos := m.textInput.CurrentTokenPos(commandinput.RoundUp).Index
+		allValues := m.textInput.AllValues()
+		isInMiddle := m.textInput.Value()[m.textInput.Cursor()-1] != ' '
+		if isInMiddle {
+			tokenPos++
+		}
+		args, _ := cmd.ValidArgsFunction(cmd, allValues[1:tokenPos], text)
+		placeholders := placeholders(cmd)
+		posArgs := []commandinput.PositionalArg{}
+
+		for _, posArg := range placeholders {
+			posArgs = append(posArgs, commandinput.NewPositionalArg(posArg))
+		}
+		cobraCommand := cmd
+
+		for _, arg := range args {
+			suggestions = append(suggestions, input.Suggestion[cobraMetadata]{
+				Text: arg,
+				Metadata: cobraMetadata{
+					commandinput.NewCmdMetadata(posArgs, commandinput.Placeholder{}),
+					cobraCommand,
+				},
+			})
+		}
+		err := cmd.Args(cmd, m.textInput.ArgsBeforeCursor())
+		if err == nil && (len(m.textInput.ArgsBeforeCursor()) >= len(posArgs) || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp), "-")) {
+			flags := []commandinput.Flag{}
+			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+				placeholder := ""
+				if flag.NoOptDefVal == "" {
+					placeholder = "<" + flag.Value.Type() + ">"
+				}
+				flags = append(flags, commandinput.Flag{
+					Short:            flag.Shorthand,
+					Long:             flag.Name,
+					RequiresArg:      flag.NoOptDefVal == "",
+					Placeholder:      placeholder,
+					Description:      flag.Usage,
+					PlaceholderStyle: input.Text{Style: lipgloss.NewStyle().Foreground(lipgloss.Color("14"))},
+				})
+			})
+
+			flagSuggestions := m.textInput.FlagSuggestions(text, flags, func(metadata commandinput.CmdMetadata, flag commandinput.Flag) cobraMetadata {
+				m := commandinput.NewCmdMetadata(posArgs, commandinput.Placeholder{Text: flag.Placeholder, Style: input.Text{Style: lipgloss.NewStyle().Foreground(lipgloss.Color("14"))}})
+				return cobraMetadata{
+					m,
+					cobraCommand,
+				}
+			})
+			suggestions = append(suggestions, flagSuggestions...)
+		}
+
+		return suggestions
+	} else {
 		for _, c := range m.rootCmd.Commands() {
 			if !slices.Contains(m.ignoreCmds, c.Name()) {
 				placeholders := placeholders(c)
-				args := []input.PositionalArg{}
+				args := []commandinput.PositionalArg{}
+				flags := []commandinput.Flag{}
 				for _, arg := range placeholders {
-					args = append(args, input.NewPositionalArg(arg))
+					args = append(args, commandinput.NewPositionalArg(arg))
 				}
-				suggestions = append(suggestions, input.Suggestion{
-					Text:           c.Name(),
-					Description:    c.Short,
-					PositionalArgs: args,
-					Metadata:       c,
+				c.Flags().VisitAll(func(flag *pflag.Flag) {
+					flags = append(flags, commandinput.Flag{
+						Short:       flag.Shorthand,
+						Long:        flag.Name,
+						Placeholder: flag.Value.Type(),
+						RequiresArg: flag.NoOptDefVal == "",
+						PlaceholderStyle: input.Text{
+							Style: lipgloss.NewStyle().Foreground(lipgloss.Color("14")),
+						},
+					})
+				})
+				cobraCommand := c
+				suggestions = append(suggestions, input.Suggestion[cobraMetadata]{
+					Text:        c.Name(),
+					Description: c.Short,
+					Metadata: cobraMetadata{
+						commandinput.NewCmdMetadata(args, commandinput.Placeholder{}),
+						cobraCommand,
+					},
 				})
 			}
 		}
 
 		return completers.FilterHasPrefix(m.textInput.CommandBeforeCursor(), suggestions)
-	} else {
-		cmd, _, _ := m.rootCmd.Find([]string{m.textInput.ParsedValue().Command.Value})
-		text := m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp)
-		args, _ := cmd.ValidArgsFunction(cmd, m.textInput.AllValues()[1:], text)
-		for _, arg := range args {
-			suggestions = append(suggestions, input.Suggestion{
-				Text:     arg,
-				Metadata: cmd,
-			})
-		}
 
-		return suggestions
 	}
 }
 
-func (m completerModel) executor(input string, selected *input.Suggestion, suggestions []input.Suggestion) (tea.Model, error) {
+func (m completerModel) executor(input string) (tea.Model, error) {
 	m.rootCmd.SetArgs(m.textInput.AllValues())
-	cmd := selected.Metadata.(*cobra.Command)
-	setInteractive(cmd)
+	setInteractive(m.textInput.SelectedCommand().Metadata.cobraCommand)
 
 	rescueStdout := os.Stdout
 	rescueStderr := os.Stderr
@@ -87,10 +155,10 @@ func (m completerModel) executor(input string, selected *input.Suggestion, sugge
 	os.Stderr = w
 	err := m.rootCmd.Execute()
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 	os.Stderr = rescueStderr
-	model := model(cmd)
+	model := model(m.textInput.SelectedCommand().Metadata.cobraCommand)
 	if model == nil {
 		return executors.NewStringModel(string(out)), err
 	}
@@ -115,11 +183,11 @@ func NewPrompt(cmd *cobra.Command) Model {
 	rootCmd := cmd.Root()
 	curCmd := cmd.Name()
 
-	textInput := commandinput.New()
+	var textInput input.Input[cobraMetadata] = commandinput.New[cobraMetadata]()
 	completerModel := completerModel{
 		rootCmd: rootCmd,
 
-		textInput:  textInput,
+		textInput:  textInput.(*commandinput.Model[cobraMetadata]),
 		ignoreCmds: []string{curCmd, "completion"},
 	}
 
