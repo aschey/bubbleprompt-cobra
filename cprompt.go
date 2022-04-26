@@ -1,6 +1,7 @@
 package cprompt
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -151,7 +152,11 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 
 func (m completerModel) executor(input string) (tea.Model, error) {
 	m.rootCmd.SetArgs(m.textInput.AllValues())
-	setInteractive(m.textInput.SelectedCommand().Metadata.cobraCommand)
+	selected := m.textInput.SelectedCommand()
+	if selected == nil {
+		return executors.NewStringModel(""), fmt.Errorf("No command selected")
+	}
+	setInteractive(selected.Metadata.cobraCommand)
 
 	rescueStdout := os.Stdout
 	rescueStderr := os.Stderr
@@ -163,7 +168,7 @@ func (m completerModel) executor(input string) (tea.Model, error) {
 	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 	os.Stderr = rescueStderr
-	model := model(m.textInput.SelectedCommand().Metadata.cobraCommand)
+	model := model(selected.Metadata.cobraCommand)
 	if model == nil {
 		return executors.NewStringModel(string(out)), err
 	}
@@ -190,8 +195,7 @@ func NewPrompt(cmd *cobra.Command) Model {
 
 	var textInput input.Input[cobraMetadata] = commandinput.New[cobraMetadata]()
 	completerModel := completerModel{
-		rootCmd: rootCmd,
-
+		rootCmd:    rootCmd,
 		textInput:  textInput.(*commandinput.Model[cobraMetadata]),
 		ignoreCmds: []string{curCmd, "completion"},
 	}
