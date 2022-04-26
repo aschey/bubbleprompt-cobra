@@ -51,8 +51,7 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 	suggestions := []input.Suggestion[cobraMetadata]{}
 
 	if m.textInput.CommandCompleted() {
-		cmd, _, _ := m.rootCmd.Find([]string{m.textInput.ParsedValue().Command.Value})
-
+		cobraCommand, _, _ := m.rootCmd.Find([]string{m.textInput.ParsedValue().Command.Value})
 		text := m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp)
 		tokenPos := m.textInput.CurrentTokenPos(commandinput.RoundUp).Index
 		allValues := m.textInput.AllValues()
@@ -60,28 +59,34 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 		if isInMiddle {
 			tokenPos++
 		}
-		args, _ := cmd.ValidArgsFunction(cmd, allValues[1:tokenPos], text)
-		placeholders := placeholders(cmd)
 		posArgs := []commandinput.PositionalArg{}
+		if cobraCommand.ValidArgsFunction != nil {
+			args, _ := cobraCommand.ValidArgsFunction(cobraCommand, allValues[1:tokenPos], text)
+			placeholders := placeholders(cobraCommand)
 
-		for _, posArg := range placeholders {
-			posArgs = append(posArgs, commandinput.NewPositionalArg(posArg))
-		}
-		cobraCommand := cmd
+			for _, posArg := range placeholders {
+				posArgs = append(posArgs, commandinput.NewPositionalArg(posArg))
+			}
 
-		for _, arg := range args {
-			suggestions = append(suggestions, input.Suggestion[cobraMetadata]{
-				Text: arg,
-				Metadata: cobraMetadata{
-					commandinput.NewCmdMetadata(posArgs, commandinput.Placeholder{}),
-					cobraCommand,
-				},
-			})
+			for _, arg := range args {
+				suggestions = append(suggestions, input.Suggestion[cobraMetadata]{
+					Text: arg,
+					Metadata: cobraMetadata{
+						commandinput.NewCmdMetadata(posArgs, commandinput.Placeholder{}),
+						cobraCommand,
+					},
+				})
+			}
 		}
-		err := cmd.Args(cmd, m.textInput.ArgsBeforeCursor())
+
+		var err error = nil
+		if cobraCommand.Args != nil {
+			err = cobraCommand.Args(cobraCommand, m.textInput.ArgsBeforeCursor())
+		}
+
 		if err == nil && (len(m.textInput.ArgsBeforeCursor()) >= len(posArgs) || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp), "-")) {
 			flags := []commandinput.Flag{}
-			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+			cobraCommand.Flags().VisitAll(func(flag *pflag.Flag) {
 				placeholder := ""
 				if flag.NoOptDefVal == "" {
 					placeholder = "<" + flag.Value.Type() + ">"
