@@ -56,6 +56,7 @@ to quickly create a Cobra application.`,
 func init() {
 	testCmd.Flags().IntP("testInt", "f", 1, "f flag")
 	testCmd.Flags().BoolP("testBool", "b", false, "b flag")
+	testCmd.Flags().BoolP("testBool2", "c", false, "c flag")
 	//testCmd.Flags().Lookup("testBool").NoOptDefVal = ""
 	rootCmd.AddCommand(testCmd)
 	cprompt.SetPlaceholders(testCmd, "<arg1>", "<arg2>", "[arg3]")

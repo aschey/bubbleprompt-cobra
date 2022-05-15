@@ -56,10 +56,24 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 		text := m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp)
 		tokenPos := m.textInput.CurrentTokenPos(commandinput.RoundUp).Index
 		allValues := m.textInput.AllValues()
-		isInMiddle := m.textInput.Value()[m.textInput.Cursor()-1] != ' '
+		prevToken := ""
+		if len(allValues) > 0 {
+			prevToken = allValues[tokenPos-1]
+		}
+
+		lastChar := m.textInput.Value()[m.textInput.Cursor()-1]
+		var isInMiddle bool
+
+		if strings.HasPrefix(prevToken, "-") {
+			isInMiddle = lastChar != ' ' && lastChar != '='
+		} else {
+			isInMiddle = lastChar != ' '
+		}
+
 		if isInMiddle {
 			tokenPos++
 		}
+
 		posArgs := []commandinput.PositionalArg{}
 		if cobraCommand.ValidArgsFunction != nil {
 			args, _ := cobraCommand.ValidArgsFunction(cobraCommand, allValues[1:tokenPos], text)
@@ -109,6 +123,7 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 					cobraCommand,
 				}
 			})
+
 			suggestions = append(suggestions, flagSuggestions...)
 		}
 
