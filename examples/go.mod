@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/aschey/bubbleprompt v0.0.0-20220709012847-55e6d571d3c1
 	github.com/aschey/bubbleprompt-cobra v0.0.0
-	github.com/spf13/cobra v1.4.1-0.20220318100158-f848943afd72
+	github.com/spf13/cobra v1.5.0
 )
 
 require (
