@@ -3,16 +3,16 @@ module github.com/aschey/bubbleprompt-cobra
 go 1.18
 
 require (
-	github.com/aschey/bubbleprompt v0.0.0-20220709012847-55e6d571d3c1
+	github.com/aschey/bubbleprompt v0.0.0-20220719003958-fa2f913f5cee
 	github.com/charmbracelet/bubbletea v0.22.0
 	github.com/charmbracelet/lipgloss v0.5.0
-	github.com/spf13/cobra v1.4.1-0.20220318100158-f848943afd72
+	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/exp v0.0.0-20220428152302-39d4317da171
+	golang.org/x/exp v0.0.0-20220713135740-79cabaa25d75
 )
 
 require (
-	github.com/alecthomas/participle/v2 v2.0.0-beta.3 // indirect
+	github.com/alecthomas/participle/v2 v2.0.0-beta.4 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/bubbles v0.13.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
@@ -25,7 +25,7 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.12.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	golang.org/x/sys v0.0.0-20220708085239-5a0f0661e09d // indirect
+	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467 // indirect
 )
 
