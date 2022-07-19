@@ -23,15 +23,16 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		model := executor.NewAsyncStringModel(func() string {
+	RunE: func(cmd *cobra.Command, _ []string) error {
+
+		model := executor.NewAsyncStringModel(func() (string, error) {
 			time.Sleep(100 * time.Millisecond)
-			return "test"
+			return "done", nil
 		})
 		return cprompt.ExecModel(cmd, model)
 	},
 	Args: cobra.MinimumNArgs(2),
-	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var choices []string
 		if (len(args) == 0 && len(toComplete) == 0) || (len(args) == 1 && len(toComplete) > 0) {
 			choices = []string{"abc", "abcd"}

@@ -200,7 +200,10 @@ func ExecModel(cmd *cobra.Command, model tea.Model) error {
 		setModel(cmd, model)
 		return nil
 	} else {
-		return tea.NewProgram(model).Start()
+		model, err := tea.NewProgram(model).StartReturningModel()
+
+		fmt.Println(model.View())
+		return err
 	}
 }
 
