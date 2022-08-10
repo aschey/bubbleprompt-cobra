@@ -48,11 +48,14 @@ func (m Model) View() string {
 	return m.prompt.View()
 }
 
-func (m completerModel) completer(document prompt.Document, promptModel prompt.Model[cobraMetadata]) []input.Suggestion[cobraMetadata] {
+func (m completerModel) completer(document prompt.Document, promptModel prompt.Model[cobraMetadata]) ([]input.Suggestion[cobraMetadata], error) {
 	suggestions := []input.Suggestion[cobraMetadata]{}
 
 	if m.textInput.CommandCompleted() {
-		cobraCommand, _, _ := m.rootCmd.Find([]string{m.textInput.ParsedValue().Command.Value})
+		cobraCommand, _, err := m.rootCmd.Find([]string{m.textInput.ParsedValue().Command.Value})
+		if err != nil {
+			return nil, err
+		}
 		text := m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp)
 		tokenPos := m.textInput.CurrentTokenPos(commandinput.RoundUp).Index
 		allValues := m.textInput.AllValues()
@@ -94,7 +97,6 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 			}
 		}
 
-		var err error = nil
 		if cobraCommand.Args != nil {
 			err = cobraCommand.Args(cobraCommand, m.textInput.ArgsBeforeCursor())
 		}
@@ -127,7 +129,7 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 			suggestions = append(suggestions, flagSuggestions...)
 		}
 
-		return suggestions
+		return suggestions, nil
 	} else {
 		for _, c := range m.rootCmd.Commands() {
 			if !slices.Contains(m.ignoreCmds, c.Name()) {
@@ -160,7 +162,7 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 			}
 		}
 
-		return completers.FilterHasPrefix(m.textInput.CommandBeforeCursor(), suggestions)
+		return completers.FilterHasPrefix(m.textInput.CommandBeforeCursor(), suggestions), nil
 
 	}
 }
