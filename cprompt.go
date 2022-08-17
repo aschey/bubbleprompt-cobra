@@ -119,7 +119,9 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 			})
 
 			flagSuggestions := m.textInput.FlagSuggestions(text, flags, func(metadata commandinput.CmdMetadata, flag commandinput.Flag) cobraMetadata {
-				m := commandinput.NewCmdMetadata(posArgs, commandinput.Placeholder{Text: flag.Placeholder, Style: input.Text{Style: lipgloss.NewStyle().Foreground(lipgloss.Color("14"))}})
+				m := commandinput.NewCmdMetadata(posArgs, commandinput.Placeholder{
+					Text:  flag.Placeholder,
+					Style: input.Text{Style: lipgloss.NewStyle().Foreground(lipgloss.Color("14"))}})
 				return cobraMetadata{
 					m,
 					cobraCommand,
