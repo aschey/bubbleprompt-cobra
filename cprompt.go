@@ -77,20 +77,14 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 			tokenPos++
 		}
 
-		posArgs := []commandinput.PositionalArg{}
 		if cobraCommand.ValidArgsFunction != nil {
 			args, _ := cobraCommand.ValidArgsFunction(cobraCommand, allValues[1:tokenPos], text)
-			placeholders := placeholders(cobraCommand)
-
-			for _, posArg := range placeholders {
-				posArgs = append(posArgs, commandinput.NewPositionalArg(posArg))
-			}
 
 			for _, arg := range args {
 				suggestions = append(suggestions, input.Suggestion[cobraMetadata]{
 					Text: arg,
 					Metadata: cobraMetadata{
-						commandinput.NewCmdMetadata(posArgs, commandinput.Placeholder{}),
+						commandinput.CmdMetadata{},
 						cobraCommand,
 					},
 				})
@@ -101,7 +95,7 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 			err = cobraCommand.Args(cobraCommand, m.textInput.ArgsBeforeCursor())
 		}
 
-		if err == nil && (len(m.textInput.ArgsBeforeCursor()) >= len(posArgs) || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp), "-")) {
+		if err == nil && (len(m.textInput.ArgsBeforeCursor()) >= len(placeholders(cobraCommand)) || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp), "-")) {
 			flags := []commandinput.Flag{}
 			cobraCommand.Flags().VisitAll(func(flag *pflag.Flag) {
 				placeholder := ""
@@ -118,10 +112,13 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 				})
 			})
 
-			flagSuggestions := m.textInput.FlagSuggestions(text, flags, func(metadata commandinput.CmdMetadata, flag commandinput.Flag) cobraMetadata {
-				m := commandinput.NewCmdMetadata(posArgs, commandinput.Placeholder{
-					Text:  flag.Placeholder,
-					Style: input.Text{Style: lipgloss.NewStyle().Foreground(lipgloss.Color("14"))}})
+			flagSuggestions := m.textInput.FlagSuggestions(text, flags, func(flag commandinput.Flag) cobraMetadata {
+				m := commandinput.CmdMetadata{
+					FlagPlaceholder: commandinput.Placeholder{
+						Text:  flag.Placeholder,
+						Style: input.Text{Style: lipgloss.NewStyle().Foreground(lipgloss.Color("14"))},
+					},
+				}
 				return cobraMetadata{
 					m,
 					cobraCommand,
@@ -157,7 +154,7 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 					Text:        c.Name(),
 					Description: c.Short,
 					Metadata: cobraMetadata{
-						commandinput.NewCmdMetadata(args, commandinput.Placeholder{}),
+						commandinput.CmdMetadata{PositionalArgs: args},
 						cobraCommand,
 					},
 				})
@@ -169,7 +166,7 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 	}
 }
 
-func (m completerModel) executor(input string) (tea.Model, error) {
+func (m completerModel) executor(input string, selectedSuggestion *input.Suggestion[cobraMetadata]) (tea.Model, error) {
 	m.rootCmd.SetArgs(m.textInput.AllValues())
 	selected := m.textInput.SelectedCommand()
 	if selected == nil {
