@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const placeholderKey string = "placeholder"
 const modelKey string = "model"
 const interactiveKey = "interactive"
 
@@ -38,29 +37,17 @@ func updateContext(cmd *cobra.Command, key string, val any) {
 	cmd.SetContext(ctx)
 }
 
-func setInteractive(cmd *cobra.Command) {
-	updateContext(cmd, interactiveKey, true)
+func PreservePlaceholder(cmd *cobra.Command, flag string) {
+	updateContext(cmd, flag+"preserve", true)
 }
 
-func interactive(cmd *cobra.Command) bool {
-	val := contextVal(cmd, interactiveKey)
+func getPreservePlaceholder(cmd *cobra.Command, flag string) bool {
+	val := contextVal(cmd, flag+"preserve")
 	if val == nil {
 		return false
 	}
+
 	return val.(bool)
-}
-
-func placeholders(cmd *cobra.Command) []string {
-	val := contextVal(cmd, placeholderKey)
-	if val == nil {
-		return []string{}
-	}
-	strVal := val.([]string)
-	return strVal
-}
-
-func SetPlaceholders(cmd *cobra.Command, placeholders ...string) {
-	updateContext(cmd, placeholderKey, placeholders)
 }
 
 func model(cmd *cobra.Command) tea.Model {

@@ -6,6 +6,7 @@ require (
 	github.com/aschey/bubbleprompt v0.0.0-20220921034954-2bd783ae9cf9
 	github.com/aschey/bubbleprompt-cobra v0.0.0
 	github.com/spf13/cobra v1.5.0
+	github.com/arriqaaq/flashdb v0.1.7-0.20220531093229-cc4605a9db90
 )
 
 require (
@@ -35,5 +36,7 @@ require (
 )
 
 replace github.com/aschey/bubbleprompt-cobra => ../
+
+replace github.com/arriqaaq/flashdb v0.1.7-0.20220531093229-cc4605a9db90 => github.com/aschey/flashdb v0.0.0-20220919214038-237f5561b34b
 
 replace github.com/aschey/bubbleprompt => ../../bubbleprompt

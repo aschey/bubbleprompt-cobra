@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -15,7 +14,7 @@ import (
 
 // testCmd represents the test command
 var testCmd = &cobra.Command{
-	Use:   "test",
+	Use:   "test <arg1> <arg2> [arg3]",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -60,7 +59,7 @@ func init() {
 	testCmd.Flags().BoolP("testBool2", "c", false, "c flag")
 	//testCmd.Flags().Lookup("testBool").NoOptDefVal = ""
 	rootCmd.AddCommand(testCmd)
-	cprompt.SetPlaceholders(testCmd, "<arg1>", "<arg2>", "[arg3]")
+	//cprompt.SetPlaceholders(testCmd, "<arg1>", "<arg2>", "[arg3]")
 
 	// Here you will define your flags and configuration settings.
 
