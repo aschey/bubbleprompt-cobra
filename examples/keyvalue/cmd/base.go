@@ -17,15 +17,13 @@ var baseCmds = []*cobra.Command{
 	{Use: "ttl <key>", RunE: db.GetExecCommand("TTL")},
 }
 
-var ttl *int64
-
 var hashCmd = &cobra.Command{Use: "hash <subcommand>"}
 var setCmd = &cobra.Command{Use: "set <subcommand>"}
 var zsetCmd = &cobra.Command{Use: "zset <subcommand>"}
 
 var setKeyCmd = &cobra.Command{Use: "set-key <key> <value> [flags]", RunE: func(cmd *cobra.Command, args []string) error {
-	if *ttl > -1 {
-		return db.GetExecCommand("SetEx")(cmd, append(args, fmt.Sprintf("%d", *ttl)))
+	if ttl, _ := cmd.Flags().GetInt64("ttl"); ttl > -1 {
+		return db.GetExecCommand("SetEx")(cmd, append(args, fmt.Sprintf("%d", ttl)))
 	}
 	return db.GetExecCommand("Set")(cmd, args)
 }}
@@ -33,5 +31,5 @@ var setKeyCmd = &cobra.Command{Use: "set-key <key> <value> [flags]", RunE: func(
 func init() {
 	rootCmd.AddCommand(append(baseCmds, setKeyCmd, hashCmd, setCmd, zsetCmd)...)
 
-	ttl = setKeyCmd.Flags().Int64P("ttl", "t", -1, "Key TTL")
+	setKeyCmd.Flags().Int64P("ttl", "t", -1, "Key TTL")
 }

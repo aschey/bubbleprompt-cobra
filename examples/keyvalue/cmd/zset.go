@@ -18,16 +18,16 @@ var zsetCommands = []*cobra.Command{
 }
 
 var getByRankCommand = &cobra.Command{Use: "get-by-rank <key> <rank>", RunE: func(cmd *cobra.Command, args []string) error {
-	reverse, _ := cmd.Flags().GetBool("reverse")
-	if reverse {
+
+	if reverse, _ := cmd.Flags().GetBool("reverse"); reverse {
 		return db.GetExecCommand("ZRevGetByRank")(cmd, args)
 	}
 	return db.GetExecCommand("ZGetByRank")(cmd, args)
 }}
 var rangeCommand = &cobra.Command{Use: "range <key> <start> <stop>", RunE: func(cmd *cobra.Command, args []string) error {
 	reverse, _ := cmd.Flags().GetBool("reverse")
-
 	scores, _ := cmd.Flags().GetBool("scores")
+
 	if scores && reverse {
 		return db.GetExecCommand("ZRevRangeWithScores")(cmd, args)
 	} else if scores {
@@ -39,15 +39,14 @@ var rangeCommand = &cobra.Command{Use: "range <key> <start> <stop>", RunE: func(
 	}
 }}
 var rankCommand = &cobra.Command{Use: "rank <key> <member>", RunE: func(cmd *cobra.Command, args []string) error {
-	reverse, _ := cmd.Flags().GetBool("reverse")
-	if reverse {
+
+	if reverse, _ := cmd.Flags().GetBool("reverse"); reverse {
 		return db.GetExecCommand("ZRevRank")(cmd, args)
 	}
 	return db.GetExecCommand("ZRanks")(cmd, args)
 }}
 var scoreRangeCommand = &cobra.Command{Use: "score-range <key> <min> <max>", RunE: func(cmd *cobra.Command, args []string) error {
-	reverse, _ := cmd.Flags().GetBool("reverse")
-	if reverse {
+	if reverse, _ := cmd.Flags().GetBool("reverse"); reverse {
 		return db.GetExecCommand("ZRevScoreRange")(cmd, []string{args[1], args[0]})
 	}
 	return db.GetExecCommand("ZRevRange")(cmd, args)

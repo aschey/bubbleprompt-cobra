@@ -24,12 +24,10 @@ var hashCmds = []*cobra.Command{
 	{Use: "values <key>", RunE: db.GetExecCommand("HValues")},
 }
 
-var all *bool
-
 var getCmd = &cobra.Command{
 	Use: "get <key> [field]",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if *all {
+		if all, _ := cmd.Flags().GetBool("all"); all {
 			return db.GetExecCommand("HGetAll")(cmd, args)
 		}
 		return db.GetExecCommand("HGet")(cmd, args)
@@ -37,6 +35,6 @@ var getCmd = &cobra.Command{
 
 func init() {
 	hashCmd.AddCommand(append(hashCmds, getCmd)...)
-	all = getCmd.Flags().BoolP("all", "a", false, "Get all fields")
+	getCmd.Flags().BoolP("all", "a", false, "Get all fields")
 	cprompt.PreservePlaceholder(getCmd, "all")
 }
