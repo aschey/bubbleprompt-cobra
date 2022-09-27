@@ -14,14 +14,14 @@ var baseCmds = []*cobra.Command{
 	{Use: "exists <key>", RunE: db.GetExecCommand("Exists")},
 	{Use: "expire <key> <duration>", RunE: db.GetExecCommand("Expire")},
 	{Use: "get <key>", RunE: db.GetExecCommand("Get")},
-	{Use: "set <subcommand>"},
 	{Use: "ttl <key>", RunE: db.GetExecCommand("TTL")},
-	{Use: "zset <subcommand>"},
 }
 
 var ttl *int64
 
 var hashCmd = &cobra.Command{Use: "hash <subcommand>"}
+var setCmd = &cobra.Command{Use: "set <subcommand>"}
+var zsetCmd = &cobra.Command{Use: "zset <subcommand>"}
 
 var setKeyCmd = &cobra.Command{Use: "set-key <key> <value> [flags]", RunE: func(cmd *cobra.Command, args []string) error {
 	if *ttl > -1 {
@@ -31,7 +31,7 @@ var setKeyCmd = &cobra.Command{Use: "set-key <key> <value> [flags]", RunE: func(
 }}
 
 func init() {
-	rootCmd.AddCommand(append(baseCmds, setKeyCmd, hashCmd)...)
+	rootCmd.AddCommand(append(baseCmds, setKeyCmd, hashCmd, setCmd, zsetCmd)...)
 
 	ttl = setKeyCmd.Flags().Int64P("ttl", "t", -1, "Key TTL")
 }

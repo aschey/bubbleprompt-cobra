@@ -87,13 +87,20 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 	}
 
 	if cobraCommand.ValidArgsFunction != nil {
-		args, _ := cobraCommand.ValidArgsFunction(cobraCommand, allValues[1:tokenPos], text)
+		args := []string{}
+		if len(allValues) > 1 {
+			args = allValues[1:]
+		}
+		if tokenPos > len(args) {
+			tokenPos = len(args)
+		}
+		validArgs, _ := cobraCommand.ValidArgsFunction(cobraCommand, args[:tokenPos], text)
 
-		for _, arg := range args {
+		for _, arg := range validArgs {
 			suggestions = append(suggestions, input.Suggestion[cobraMetadata]{
 				Text: arg,
 				Metadata: cobraMetadata{
-					commandinput.CmdMetadata{},
+					commandinput.CmdMetadata{HasFlags: cobraCommand.HasFlags()},
 					cobraCommand,
 				},
 			})
@@ -114,8 +121,9 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 	if len(placeholders) > 0 && placeholders[len(placeholders)-1] == "[flags]" {
 		placeholdersBeforeFlags--
 	}
-
-	if err == nil && (len(m.textInput.ArgsBeforeCursor()) >= placeholdersBeforeFlags || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp), "-")) {
+	argsBeforeCursor := m.textInput.ArgsBeforeCursor()
+	level := m.getLevel(*cobraCommand)
+	if err == nil && (len(argsBeforeCursor)-level >= placeholdersBeforeFlags || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp), "-")) {
 		flags := []commandinput.Flag{}
 
 		cobraCommand.Flags().VisitAll(func(flag *pflag.Flag) {
@@ -154,7 +162,9 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 			}
 		})
 
-		suggestions = append(suggestions, flagSuggestions...)
+		if len(flagSuggestions) > 0 {
+			return flagSuggestions, nil
+		}
 	}
 
 	return completers.FilterHasPrefix(m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp), suggestions), nil
@@ -166,7 +176,7 @@ func (m completerModel) getLevel(command cobra.Command) int {
 		level++
 		command = *command.Parent()
 	}
-	return level
+	return level - 1
 }
 
 func (m completerModel) getSubcommandSuggestions(command cobra.Command) []input.Suggestion[cobraMetadata] {
@@ -186,11 +196,15 @@ func (m completerModel) getSubcommandSuggestions(command cobra.Command) []input.
 			}
 
 			cobraCommand := c
+			hasFlags := c.HasFlags()
+			if len(args) > 0 && args[len(args)-1].Placeholder == "[flags]" {
+				hasFlags = false
+			}
 			suggestions = append(suggestions, input.Suggestion[cobraMetadata]{
 				Text:        c.Name(),
 				Description: c.Short,
 				Metadata: cobraMetadata{
-					commandinput.CmdMetadata{PositionalArgs: args, Level: level},
+					commandinput.CmdMetadata{PositionalArgs: args, Level: level + 1, HasFlags: hasFlags},
 					cobraCommand,
 				},
 			})
@@ -202,6 +216,15 @@ func (m completerModel) getSubcommandSuggestions(command cobra.Command) []input.
 
 func (m completerModel) executor(input string, selectedSuggestion *input.Suggestion[cobraMetadata]) (tea.Model, error) {
 	m.rootCmd.SetArgs(m.textInput.AllValues())
+
+	// Reset flags before each run to ensure old values are cleared out
+	cmd, _, _ := m.rootCmd.Find(m.textInput.AllValues())
+	if cmd != nil {
+		cmd.Flags().VisitAll(func(f *pflag.Flag) {
+			f.Value.Set(f.DefValue)
+		})
+	}
+
 	selected := m.textInput.SelectedCommand()
 	if selected == nil {
 		return executors.NewStringModel(""), fmt.Errorf("No command selected")
@@ -253,7 +276,7 @@ func NewPrompt(cmd *cobra.Command) Model {
 	completerModel := completerModel{
 		rootCmd:    rootCmd,
 		textInput:  textInput.(*commandinput.Model[cobraMetadata]),
-		ignoreCmds: []string{curCmd, "completion"},
+		ignoreCmds: []string{curCmd, "completion", "help"},
 	}
 
 	m := Model{

@@ -59,6 +59,12 @@ func GetExecCommand(methodName string) func(cmd *cobra.Command, args []string) e
 					switch ifaceVal := iface.(type) {
 					case error:
 						return fmt.Errorf(ifaceVal.Error())
+					case []interface{}:
+						strVals := []string{}
+						for _, s := range ifaceVal {
+							strVals = append(strVals, fmt.Sprintf("%v", s))
+						}
+						retVals = append(retVals, strings.Join(strVals, ","))
 					case []string:
 						retVals = append(retVals, strings.Join(ifaceVal, ","))
 					case string:
