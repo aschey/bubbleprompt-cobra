@@ -62,39 +62,11 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 		return nil, err
 	}
 	text := m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp)
-	tokenPos := m.textInput.CurrentTokenPos(commandinput.RoundUp).Index
-	allValues := m.textInput.AllValues()
-	prevToken := ""
-	if len(allValues) > 0 && tokenPos > 0 && len(allValues) > tokenPos {
-		prevToken = allValues[tokenPos-1]
-	}
-
-	lastChar := ""
-	if m.textInput.Cursor() > len(m.textInput.Value()) {
-		lastChar = string(m.textInput.Value()[m.textInput.Cursor()-1])
-	}
-
-	var isInMiddle bool
-
-	if strings.HasPrefix(prevToken, "-") {
-		isInMiddle = lastChar != " " && lastChar != "="
-	} else {
-		isInMiddle = lastChar != " "
-	}
-
-	if isInMiddle {
-		tokenPos++
-	}
+	level := m.getLevel(*cobraCommand)
 
 	if cobraCommand.ValidArgsFunction != nil {
-		args := []string{}
-		if len(allValues) > 1 {
-			args = allValues[1:]
-		}
-		if tokenPos > len(args) {
-			tokenPos = len(args)
-		}
-		validArgs, _ := cobraCommand.ValidArgsFunction(cobraCommand, args[:tokenPos], text)
+		completed := m.textInput.CompletedArgsBeforeCursor()[level:]
+		validArgs, _ := cobraCommand.ValidArgsFunction(cobraCommand, completed, m.textInput.CurrentTokenBeforeCursor(commandinput.RoundDown))
 
 		for _, arg := range validArgs {
 			suggestions = append(suggestions, input.Suggestion[cobraMetadata]{
@@ -122,7 +94,7 @@ func (m completerModel) completer(document prompt.Document, promptModel prompt.M
 		placeholdersBeforeFlags--
 	}
 	argsBeforeCursor := m.textInput.ArgsBeforeCursor()
-	level := m.getLevel(*cobraCommand)
+
 	if err == nil && (len(argsBeforeCursor)-level >= placeholdersBeforeFlags || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp), "-")) {
 		flags := []commandinput.Flag{}
 
@@ -265,6 +237,19 @@ func ExecModel(cmd *cobra.Command, model tea.Model) error {
 		fmt.Println(model.View())
 		return err
 	}
+}
+
+func FilterShellCompletions(options []string, toComplete string) []string {
+	suggestions := []input.Suggestion[cobraMetadata]{}
+	for _, option := range options {
+		suggestions = append(suggestions, input.Suggestion[cobraMetadata]{Text: option})
+	}
+	filtered := completers.FilterHasPrefix(toComplete, suggestions)
+	results := []string{}
+	for _, result := range filtered {
+		results = append(results, result.Text)
+	}
+	return results
 }
 
 func NewPrompt(cmd *cobra.Command) Model {

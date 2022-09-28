@@ -4,7 +4,6 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"strings"
 	"time"
 
 	cprompt "github.com/aschey/bubbleprompt-cobra"
@@ -23,7 +22,6 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, _ []string) error {
-
 		model := executor.NewAsyncStringModel(func() (string, error) {
 			time.Sleep(100 * time.Millisecond)
 			return "done", nil
@@ -32,24 +30,16 @@ to quickly create a Cobra application.`,
 	},
 	Args: cobra.MinimumNArgs(2),
 	ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+
 		var choices []string
-		if (len(args) == 0 && len(toComplete) == 0) || (len(args) == 1 && len(toComplete) > 0) {
-			choices = []string{"abc", "abcd"}
-		} else if (len(args) == 1 && len(toComplete) == 0) || (len(args) == 2 && len(toComplete) > 0) {
-			choices = []string{"def", "defg"}
-		}
-		//  else if (len(args) == 2 && len(toComplete) == 0) || (len(args) == 3 && len(toComplete) > 0) {
-		// 	choices = []string{"hij", "hijk"}
-		// }
-
-		filtered := []string{}
-		for _, c := range choices {
-			if strings.HasPrefix(c, toComplete) {
-				filtered = append(filtered, c)
-			}
+		completeIndex := len(args)
+		if completeIndex == 0 {
+			choices = cprompt.FilterShellCompletions([]string{"abc", "abcd"}, toComplete)
+		} else if completeIndex == 1 {
+			choices = cprompt.FilterShellCompletions([]string{"def", "defg"}, toComplete)
 		}
 
-		return filtered, cobra.ShellCompDirectiveDefault
+		return choices, cobra.ShellCompDirectiveDefault
 	},
 }
 

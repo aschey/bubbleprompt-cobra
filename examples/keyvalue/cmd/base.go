@@ -8,13 +8,11 @@ import (
 )
 
 var baseCmds = []*cobra.Command{
-	{Use: "delete <key>", RunE: func(cmd *cobra.Command, args []string) error {
-		return nil
-	}},
-	{Use: "exists <key>", RunE: db.GetExecCommand("Exists")},
-	{Use: "expire <key> <duration>", RunE: db.GetExecCommand("Expire")},
-	{Use: "get <key>", RunE: db.GetExecCommand("Get")},
-	{Use: "ttl <key>", RunE: db.GetExecCommand("TTL")},
+	{Use: "delete <key>", RunE: db.GetExecCommand("Del"), ValidArgsFunction: db.GetKeys},
+	{Use: "exists <key>", RunE: db.GetExecCommand("Exists"), ValidArgsFunction: db.GetKeys},
+	{Use: "expire <key> <duration>", RunE: db.GetExecCommand("Expire"), ValidArgsFunction: db.GetKeys},
+	{Use: "get <key>", RunE: db.GetExecCommand("Get"), ValidArgsFunction: db.GetKeys},
+	{Use: "ttl <key>", RunE: db.GetExecCommand("TTL"), ValidArgsFunction: db.GetKeys},
 }
 
 var hashCmd = &cobra.Command{Use: "hash <subcommand>"}

@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/arriqaaq/flashdb"
 	cprompt "github.com/aschey/bubbleprompt-cobra"
@@ -13,15 +14,60 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var dbMutex sync.Mutex
 var db *flashdb.FlashDB
 
-func init() {
+func LoadDb() error {
 	config := &flashdb.Config{Path: "./.bin"}
 	var err error
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 	db, err = flashdb.New(config)
+	return err
+}
+
+func init() {
+	err := LoadDb()
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
+	}
+
+}
+
+func getKeys(args []string, toComplete string, numAllowedArgs int, keyFunc func(tx *flashdb.Tx) []string) (keys []string, directive cobra.ShellCompDirective) {
+	directive = cobra.ShellCompDirectiveDefault
+	if numAllowedArgs > -1 && len(args) > numAllowedArgs-1 {
+		return
+	}
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+	db.View(func(tx *flashdb.Tx) error {
+		keys = cprompt.FilterShellCompletions(keyFunc(tx), toComplete)
+		return nil
+	})
+	return
+}
+
+func GetKeys(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return getKeys(args, toComplete, 1, func(tx *flashdb.Tx) []string { return tx.Keys() })
+}
+
+func HGetKeys(_ *cobra.Command, args []string, toComplete string) (keys []string, directive cobra.ShellCompDirective) {
+	return getKeys(args, toComplete, 1, func(tx *flashdb.Tx) []string { return tx.HKeys() })
+}
+
+func ZGetKeys(_ *cobra.Command, args []string, toComplete string) (keys []string, directive cobra.ShellCompDirective) {
+	return getKeys(args, toComplete, 1, func(tx *flashdb.Tx) []string { return tx.ZKeys() })
+}
+
+func SGetKeys(_ *cobra.Command, args []string, toComplete string) (keys []string, directive cobra.ShellCompDirective) {
+	return getKeys(args, toComplete, 1, func(tx *flashdb.Tx) []string { return tx.SKeys() })
+}
+
+func SGetKeysN(numAllowedArgs int) func(_ *cobra.Command, args []string, toComplete string) (keys []string, directive cobra.ShellCompDirective) {
+	return func(_ *cobra.Command, args []string, toComplete string) (keys []string, directive cobra.ShellCompDirective) {
+		return getKeys(args, toComplete, numAllowedArgs, func(tx *flashdb.Tx) []string { return tx.SKeys() })
 	}
 }
 
@@ -29,7 +75,8 @@ func GetExecCommand(methodName string) func(cmd *cobra.Command, args []string) e
 	return func(cmd *cobra.Command, args []string) error {
 
 		outStr := ""
-
+		dbMutex.Lock()
+		defer dbMutex.Unlock()
 		err := db.Update(func(tx *flashdb.Tx) error {
 			var err error
 

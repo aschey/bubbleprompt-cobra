@@ -8,20 +8,20 @@ import (
 )
 
 var hashCmds = []*cobra.Command{
-	{Use: "clear <key>", RunE: db.GetExecCommand("HClear")},
-	{Use: "delete <key> <values...>", RunE: db.GetExecCommand("HDel")},
+	{Use: "clear <key>", RunE: db.GetExecCommand("HClear"), ValidArgsFunction: db.HGetKeys},
+	{Use: "delete <key> <values...>", RunE: db.GetExecCommand("HDel"), ValidArgsFunction: db.HGetKeys},
 	{Use: "exists <key> [field]", RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 2 {
 			return db.GetExecCommand("HExists")(cmd, args)
 		}
 		return db.GetExecCommand("HKeyExists")(cmd, args)
-	}},
-	{Use: "expire <key> <duration>", RunE: db.GetExecCommand("HExpire")},
-	{Use: "fields <key>", RunE: db.GetExecCommand("HKeys")},
-	{Use: "length <key>", RunE: db.GetExecCommand("HLen")},
+	}, ValidArgsFunction: db.HGetKeys},
+	{Use: "expire <key> <duration>", RunE: db.GetExecCommand("HExpire"), ValidArgsFunction: db.HGetKeys},
+	{Use: "fields <key>", RunE: db.GetExecCommand("HFields"), ValidArgsFunction: db.HGetKeys},
+	{Use: "length <key>", RunE: db.GetExecCommand("HLen"), ValidArgsFunction: db.HGetKeys},
 	{Use: "set <key> <field> <value>", RunE: db.GetExecCommand("HSet")},
-	{Use: "ttl <key>", RunE: db.GetExecCommand("HTTL")},
-	{Use: "values <key>", RunE: db.GetExecCommand("HValues")},
+	{Use: "ttl <key>", RunE: db.GetExecCommand("HTTL"), ValidArgsFunction: db.HGetKeys},
+	{Use: "values <key>", RunE: db.GetExecCommand("HValues"), ValidArgsFunction: db.HGetKeys},
 }
 
 var getCmd = &cobra.Command{
