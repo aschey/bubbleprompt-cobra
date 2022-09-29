@@ -24,8 +24,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		model := model{inner: cprompt.NewPrompt(cmd)}
-		return tea.NewProgram(model).Start()
+		promptModel, err := cprompt.NewPrompt(cmd)
+		if err != nil {
+			return err
+		}
+
+		model := model{inner: promptModel}
+		return tea.NewProgram(&model).Start()
 	},
 }
 
@@ -38,7 +43,7 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if _, ok := msg.(prompt.TriggerCompleterMsg); ok {
+	if _, ok := msg.(prompt.PeriodicCompleterMsg); ok {
 		_ = db.LoadDb()
 	}
 	model, cmd := m.inner.Update(msg)
@@ -52,14 +57,4 @@ func (m model) View() string {
 
 func init() {
 	rootCmd.AddCommand(interactiveCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// interactiveCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// interactiveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
