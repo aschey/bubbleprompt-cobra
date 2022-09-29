@@ -10,7 +10,7 @@ import (
 var baseCmds = []*cobra.Command{
 	{
 		Use:               "delete <key>",
-		RunE:              db.GetExecCommand("Del"),
+		RunE:              db.GetExecCommand("Delete"),
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: db.GetKeys,
 	},

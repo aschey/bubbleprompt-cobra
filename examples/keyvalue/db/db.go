@@ -73,13 +73,10 @@ func SGetKeysN(numAllowedArgs int) func(_ *cobra.Command, args []string, toCompl
 
 func GetExecCommand(methodName string) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-
 		outStr := ""
 		dbMutex.Lock()
 		defer dbMutex.Unlock()
 		err := db.Update(func(tx *flashdb.Tx) error {
-			var err error
-
 			method, found := reflect.TypeOf(tx).MethodByName(methodName)
 			if !found {
 				return fmt.Errorf("command not found")
@@ -142,7 +139,6 @@ func GetExecCommand(methodName string) func(cmd *cobra.Command, args []string) e
 
 		model := executor.NewStringModel(outStr)
 		return cprompt.ExecModel(cmd, model)
-
 	}
 
 }

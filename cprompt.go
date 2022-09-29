@@ -218,17 +218,23 @@ func (m *completerModel) executor(input string, selectedSuggestion *input.Sugges
 
 	rescueStdout := os.Stdout
 	rescueStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-	os.Stderr = w
+	outR, outW, _ := os.Pipe()
+	errR, errW, _ := os.Pipe()
+	os.Stdout = outW
+	os.Stderr = errW
 
 	err := m.rootCmd.Execute()
-	w.Close()
-	out, _ := io.ReadAll(r)
+	outW.Close()
+	errW.Close()
+	outData, _ := io.ReadAll(outR)
+	errData, _ := io.ReadAll(errR)
 	os.Stdout = rescueStdout
 	os.Stderr = rescueStderr
-	if len(out) > 0 {
-		return executors.NewStringModel(string(out)), nil
+	if len(outData) > 0 {
+		return executors.NewStringModel(string(outData)), nil
+	}
+	if len(errData) > 0 {
+		return nil, fmt.Errorf(strings.TrimRight(string(errData), "\n"))
 	}
 
 	model := model(m.rootCmd)
@@ -260,7 +266,6 @@ func (m *Model) SetOnExecutorFinish(onExecutorFinish ExecutorFinish) {
 }
 
 func ExecModel(cmd *cobra.Command, model tea.Model) error {
-	//interactive := interactive(cmd)
 	if interactive {
 		setModel(cmd.Root(), model)
 		return nil
@@ -298,13 +303,17 @@ func NewPrompt(cmd *cobra.Command, options ...Option) (Model, error) {
 		textInput:  textInput.(*commandinput.Model[CobraMetadata]),
 		ignoreCmds: []string{curCmd, "completion", "help"},
 	}
+	prompt, err := prompt.New(
+		completerModel.completer,
+		completerModel.executor,
+		textInput,
+	)
+	if err != nil {
+		return Model{}, err
+	}
 
 	m := Model{
-		prompt: prompt.New(
-			completerModel.completer,
-			completerModel.executor,
-			textInput,
-		),
+		prompt:    prompt,
 		completer: &completerModel,
 	}
 
