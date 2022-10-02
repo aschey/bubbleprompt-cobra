@@ -30,7 +30,7 @@ to quickly create a Cobra application.`,
 		}
 
 		model := model{inner: promptModel}
-		return tea.NewProgram(&model).Start()
+		return tea.NewProgram(&model, tea.WithOnQuit(prompt.OnQuit)).Start()
 	},
 }
 

@@ -40,7 +40,7 @@ var hashCmds = []*cobra.Command{
 	},
 	{
 		Use:               "fields <key>",
-		RunE:              db.GetExecCommand("HFields"),
+		RunE:              db.GetListExecCommand("HFields"),
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: db.HGetKeys},
 

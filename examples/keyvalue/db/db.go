@@ -1,6 +1,7 @@
 package db
 
 import (
+	"examples/keyvalue/model"
 	"fmt"
 	"os"
 	"reflect"
@@ -11,6 +12,7 @@ import (
 	"github.com/arriqaaq/flashdb"
 	cprompt "github.com/aschey/bubbleprompt-cobra"
 	"github.com/aschey/bubbleprompt/executor"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
 
@@ -72,8 +74,16 @@ func SGetKeysN(numAllowedArgs int) func(_ *cobra.Command, args []string, toCompl
 }
 
 func GetExecCommand(methodName string) func(cmd *cobra.Command, args []string) error {
+	return getExecCommand(methodName, false)
+}
+
+func GetListExecCommand(methodName string) func(cmd *cobra.Command, args []string) error {
+	return getExecCommand(methodName, true)
+}
+
+func getExecCommand(methodName string, returnList bool) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		outStr := ""
+		retVals := []string{}
 		dbMutex.Lock()
 		defer dbMutex.Unlock()
 		err := db.Update(func(tx *flashdb.Tx) error {
@@ -93,7 +103,7 @@ func GetExecCommand(methodName string) func(cmd *cobra.Command, args []string) e
 			}
 
 			out := method.Func.Call(paramVals)
-			retVals := []string{}
+
 			for _, outVal := range out {
 				if outVal.CanInterface() {
 					iface := outVal.Interface()
@@ -108,9 +118,9 @@ func GetExecCommand(methodName string) func(cmd *cobra.Command, args []string) e
 						for _, s := range ifaceVal {
 							strVals = append(strVals, fmt.Sprintf("%v", s))
 						}
-						retVals = append(retVals, strings.Join(strVals, ","))
+						retVals = append(retVals, strVals...)
 					case []string:
-						retVals = append(retVals, strings.Join(ifaceVal, ","))
+						retVals = append(retVals, ifaceVal...)
 					case string:
 						retVals = append(retVals, ifaceVal)
 					case bool:
@@ -129,7 +139,6 @@ func GetExecCommand(methodName string) func(cmd *cobra.Command, args []string) e
 					retVals = append(retVals, outVal.String())
 				}
 			}
-			outStr = strings.Join(retVals, " ")
 			return nil
 		})
 
@@ -137,8 +146,14 @@ func GetExecCommand(methodName string) func(cmd *cobra.Command, args []string) e
 			return err
 		}
 
-		model := executor.NewStringModel(outStr)
-		return cprompt.ExecModel(cmd, model)
+		var retModel tea.Model
+		if returnList {
+			retModel = model.NewList(retVals)
+		} else {
+			retModel = executor.NewStringModel(strings.Join(retVals, ","))
+		}
+
+		return cprompt.ExecModel(cmd, retModel)
 	}
 
 }

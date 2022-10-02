@@ -8,17 +8,12 @@ github.com/alecthomas/assert/v2 v2.0.3/go.mod h1:b/+1DI2Q6NckYi+3mXyH3wFb8qG37K/
 github.com/alecthomas/participle/v2 v2.0.0-beta.3 h1:9HnyNuDsqOG8sl63Dz+KubqHhU8aWqsrjKdecim8GW0=
 github.com/alecthomas/participle/v2 v2.0.0-beta.3/go.mod h1:RC764t6n4L8D8ITAJv0qdokritYSNR3wV5cVwmIEaMM=
 github.com/alecthomas/repr v0.1.0/go.mod h1:2kn6fqh/zIyPLmm3ugklbEi5hg5wS435eygvNfaDQL8=
-github.com/arriqaaq/aol v0.1.2 h1:uGEMA1mYu968vmRUSE9d2++YUaDGObbBN1QzD6RlgC4=
-github.com/arriqaaq/art v0.1.2 h1:GoAiArsfRTV8wPb2X7/58ZFNBUwoPfGfsTvweeiYgzg=
-github.com/arriqaaq/hash v0.1.2 h1:q/Az5T00nkqEc/XhlnrGcPeZBmgBM5ktKi26nr70s9c=
-github.com/arriqaaq/set v0.1.2 h1:uiIarvVXvsAWr/RQ4L9C7HgOXh4jteaBeFMwU/faWlk=
-github.com/arriqaaq/zset v0.1.2 h1:vF/B95Unz/zA0Ttmc1XHCQVyxIXd7B6PNc3H4aCOdyo=
+github.com/aschey/bubbletea v0.20.1-0.20221001181920-e339dd2864de h1:rjWJ5Y4zr3lM+oBKFK8/dc5R67MxU4cqOMhHuyqRPtI=
+github.com/aschey/bubbletea v0.20.1-0.20221001181920-e339dd2864de/go.mod h1:JAfGK/3/pPKHTnAS8JIE2u9f61BjWTQY57RbT25aMXU=
 github.com/aschey/flashdb v0.0.0-20220919214038-237f5561b34b h1:J1vqppIQvWRF2fOI+EWoZ1cyYWrQuOJwrWqPTyUQGYo=
 github.com/aschey/flashdb v0.0.0-20220919214038-237f5561b34b/go.mod h1:a85hbOVNwN9nTFBnl8pYB6qGqelfg/l1GSgxf9yB+Bk=
 github.com/aschey/flashdb v0.0.0-20220927024316-8dc2dc197975 h1:o5+9OCzLk4hmGLW50Nfl8wvEKLKC29JhWnRWJKAdTcs=
 github.com/aschey/flashdb v0.0.0-20220927024316-8dc2dc197975/go.mod h1:a85hbOVNwN9nTFBnl8pYB6qGqelfg/l1GSgxf9yB+Bk=
-github.com/aschey/flashdb v0.0.0-20220928141429-3c4b618d1c38 h1:E1eKye8R13ERjuC0SkN9M07/HFLpaIfkIBuVwM1HHmI=
-github.com/aschey/flashdb v0.0.0-20220928141429-3c4b618d1c38/go.mod h1:a85hbOVNwN9nTFBnl8pYB6qGqelfg/l1GSgxf9yB+Bk=
 github.com/aschey/tui-tester v0.0.0-20220221031037-272d78b5d55b/go.mod h1:rQl6d4M2P7v4SwOwEic/MEyb4gu/SzStaORf0Y/Fh6E=
 github.com/aschey/tui-tester v0.0.0-20220704222528-b40a2fce8e58/go.mod h1:CsxDG5nnt6mbb4xxhtOS5aNtFnGvqQOXwuWjTUp+Pyw=
 github.com/atomicgo/cursor v0.0.1/go.mod h1:cBON2QmmrysudxNBFthvMtN32r3jxVRIvzkUiF/RuIk=
@@ -37,6 +32,7 @@ github.com/pterm/pterm v0.12.30/go.mod h1:MOqLIyMOgmTDz9yorcYbcw+HsgoZo3BQfg2wtl
 github.com/pterm/pterm v0.12.31/go.mod h1:32ZAWZVXD7ZfG0s8qqHXePte42kdz8ECtRyEejaWgXU=
 github.com/pterm/pterm v0.12.33/go.mod h1:x+h2uL+n7CP/rel9+bImHD5lF3nM9vJj80k9ybiiTTE=
 github.com/pterm/pterm v0.12.36/go.mod h1:NjiL09hFhT/vWjQHSj1athJpx6H8cjpHXNAK5bUw8T8=
+github.com/sahilm/fuzzy v0.1.0 h1:FzWGaw2Opqyu+794ZQ9SYifWv2EIXpwP4q8dY1kDAwI=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=

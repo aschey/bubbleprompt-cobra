@@ -35,3 +35,5 @@ require (
 )
 
 replace github.com/aschey/bubbleprompt => ../bubbleprompt
+
+replace github.com/charmbracelet/bubbletea => github.com/aschey/bubbletea v0.20.1-0.20221001181920-e339dd2864de
