@@ -62,7 +62,7 @@ var hashCmds = []*cobra.Command{
 		ValidArgsFunction: db.HGetKeys},
 	{
 		Use:               "values <key>",
-		RunE:              db.GetExecCommand("HValues"),
+		RunE:              db.GetListExecCommand("HVals"),
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: db.HGetKeys,
 	},

@@ -26,7 +26,7 @@ var setCommands = []*cobra.Command{
 	},
 	{
 		Use:               "diff <keys...>",
-		RunE:              db.GetExecCommand("SDiff"),
+		RunE:              db.GetListExecCommand("SDiff"),
 		Args:              cobra.MinimumNArgs(1),
 		ValidArgsFunction: db.SGetKeysN(-1),
 	},
@@ -50,7 +50,7 @@ var setCommands = []*cobra.Command{
 	},
 	{
 		Use:               "members <key>",
-		RunE:              db.GetExecCommand("SMembers"),
+		RunE:              db.GetListExecCommand("SMembers"),
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: db.SGetKeys,
 	},
@@ -69,7 +69,7 @@ var setCommands = []*cobra.Command{
 	},
 	{
 		Use:               "remove <key> <members...>",
-		RunE:              db.GetExecCommand("SRandMember"),
+		RunE:              db.GetExecCommand("SRem"),
 		Args:              cobra.MinimumNArgs(2),
 		ValidArgsFunction: db.SGetKeys,
 	},
@@ -81,7 +81,7 @@ var setCommands = []*cobra.Command{
 	},
 	{
 		Use:               "union <keys...>",
-		RunE:              db.GetExecCommand("SUnion"),
+		RunE:              db.GetListExecCommand("SUnion"),
 		Args:              cobra.MinimumNArgs(1),
 		ValidArgsFunction: db.SGetKeysN(-1),
 	},

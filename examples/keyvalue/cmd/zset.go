@@ -106,16 +106,16 @@ var scoreRangeCommand = &cobra.Command{
 		args []string) error {
 
 		if reverse, _ := cmd.Flags().GetBool("reverse"); reverse {
-			return db.GetExecCommand("ZRevScoreRange")(cmd, []string{args[1], args[0]})
+			return db.GetListExecCommand("ZRevScoreRange")(cmd, []string{args[1], args[0]})
 		}
-		return db.GetExecCommand("ZRevRange")(cmd, args)
+		return db.GetListExecCommand("ZRevRange")(cmd, args)
 	},
 	Args:              cobra.ExactArgs(3),
 	ValidArgsFunction: db.ZGetKeys,
 }
 
 func init() {
-	zsetCmd.AddCommand(append(zsetCommands, getByRankCommand, rangeCommand, rankCommand)...)
+	zsetCmd.AddCommand(append(zsetCommands, getByRankCommand, rangeCommand, rankCommand, scoreRangeCommand)...)
 	getByRankCommand.Flags().BoolP("reverse", "r", false, "Display in reverse order")
 	rangeCommand.Flags().BoolP("reverse", "r", false, "Display in reverse order")
 	rankCommand.Flags().BoolP("reverse", "r", false, "Display in reverse order")
