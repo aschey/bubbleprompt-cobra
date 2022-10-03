@@ -287,6 +287,15 @@ func FilterShellCompletions(options []string, toComplete string) []string {
 	return results
 }
 
+func buildPromptModel(completerModel completerModel, opts ...prompt.Option[CobraMetadata]) (prompt.Model[CobraMetadata], error) {
+	return prompt.New(
+		completerModel.completer,
+		completerModel.executor,
+		completerModel.textInput,
+		opts...,
+	)
+}
+
 func NewPrompt(cmd *cobra.Command, options ...Option) (Model, error) {
 	interactive = true
 	rootCmd := cmd.Root()
@@ -294,17 +303,13 @@ func NewPrompt(cmd *cobra.Command, options ...Option) (Model, error) {
 	rootCmd.SilenceUsage = true
 	curCmd := cmd.Name()
 
-	var textInput input.Input[CobraMetadata] = commandinput.New[CobraMetadata]()
+	textInput := commandinput.New[CobraMetadata]()
 	completerModel := completerModel{
 		rootCmd:    rootCmd,
-		textInput:  textInput.(*commandinput.Model[CobraMetadata]),
+		textInput:  textInput,
 		ignoreCmds: []string{curCmd, "completion", "help"},
 	}
-	prompt, err := prompt.New(
-		completerModel.completer,
-		completerModel.executor,
-		textInput,
-	)
+	prompt, err := buildPromptModel(completerModel)
 	if err != nil {
 		return Model{}, err
 	}

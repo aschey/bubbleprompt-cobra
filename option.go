@@ -1,5 +1,7 @@
 package cprompt
 
+import prompt "github.com/aschey/bubbleprompt"
+
 type Option func(model *Model) error
 
 func WithIgnoreCmds(cmds ...string) Option {
@@ -33,6 +35,17 @@ func WithOnExecutorStart(onExecutorStart ExecutorStart) Option {
 func WithOnExecutorFinish(onExecutorFinish ExecutorFinish) Option {
 	return func(model *Model) error {
 		model.completer.onExecutorFinish = onExecutorFinish
+		return nil
+	}
+}
+
+func WithPromptOptions(options ...prompt.Option[CobraMetadata]) Option {
+	return func(model *Model) error {
+		prompt, err := buildPromptModel(*model.completer, options...)
+		if err != nil {
+			return err
+		}
+		model.prompt = prompt
 		return nil
 	}
 }
