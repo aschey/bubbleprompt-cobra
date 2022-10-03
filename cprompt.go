@@ -83,7 +83,7 @@ func (m *completerModel) completer(document prompt.Document, promptModel prompt.
 			suggestions = append(suggestions, input.Suggestion[CobraMetadata]{
 				Text: arg,
 				Metadata: CobraMetadata{
-					commandinput.CmdMetadata{HasFlags: cobraCommand.HasFlags()},
+					commandinput.CmdMetadata{ShowFlagPlaceholder: cobraCommand.HasLocalFlags()},
 					cobraCommand,
 				},
 			})
@@ -179,7 +179,7 @@ func (m *completerModel) getSubcommandSuggestions(command cobra.Command) []input
 			}
 
 			cobraCommand := c
-			hasFlags := c.HasFlags()
+			hasFlags := c.HasLocalFlags()
 			if len(args) > 0 && args[len(args)-1].Placeholder == "[flags]" {
 				hasFlags = false
 			}
@@ -187,7 +187,7 @@ func (m *completerModel) getSubcommandSuggestions(command cobra.Command) []input
 				Text:        c.Name(),
 				Description: c.Short,
 				Metadata: CobraMetadata{
-					commandinput.CmdMetadata{PositionalArgs: args, Level: level + 1, HasFlags: hasFlags},
+					commandinput.CmdMetadata{PositionalArgs: args, Level: level + 1, ShowFlagPlaceholder: hasFlags},
 					cobraCommand,
 				},
 			})
