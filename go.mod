@@ -34,6 +34,4 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 )
 
-replace github.com/aschey/bubbleprompt => ../bubbleprompt
-
 replace github.com/charmbracelet/bubbletea => github.com/aschey/bubbletea v0.20.1-0.20221005031422-8b90e8e97d55

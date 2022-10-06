@@ -49,5 +49,3 @@ replace github.com/arriqaaq/flashdb => github.com/aschey/flashdb v0.0.0-20220928
 replace github.com/arriqaaq/set => github.com/aschey/set v0.0.0-20221003220052-d4d3fc9267fa
 
 replace github.com/charmbracelet/bubbletea => github.com/aschey/bubbletea v0.20.1-0.20221005031422-8b90e8e97d55
-
-replace github.com/aschey/bubbleprompt => ../../bubbleprompt

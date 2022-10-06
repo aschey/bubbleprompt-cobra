@@ -12,7 +12,10 @@ jobs:
         with:
           go-version: 1.18.x
       - name: build examples
-        run: ./bin/task examples
+        run: |
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+          ./bin/task setup
+          ./bin/task examples
   lint:
     name: lint
     runs-on: ubuntu-latest
