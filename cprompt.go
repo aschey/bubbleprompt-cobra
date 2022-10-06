@@ -208,7 +208,7 @@ func (m *completerModel) executor(input string, selectedSuggestion *input.Sugges
 	cmd, _, _ := m.rootCmd.Find(m.textInput.AllValues())
 	if cmd != nil {
 		cmd.Flags().VisitAll(func(f *pflag.Flag) {
-			f.Value.Set(f.DefValue)
+			_ = f.Value.Set(f.DefValue)
 		})
 	}
 

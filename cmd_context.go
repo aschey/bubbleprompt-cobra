@@ -8,7 +8,8 @@ import (
 )
 
 const modelKey string = "model"
-const interactiveKey = "interactive"
+
+type ctxKey string
 
 func cmdContext(cmd *cobra.Command) context.Context {
 	ctx := cmd.Context()
@@ -28,12 +29,12 @@ func keyPrefix(cmd *cobra.Command) string {
 
 func contextVal(cmd *cobra.Command, key string) any {
 	ctx := cmdContext(cmd)
-	return ctx.Value(keyPrefix(cmd) + key)
+	return ctx.Value(ctxKey(keyPrefix(cmd) + key))
 }
 
 func updateContext(cmd *cobra.Command, key string, val any) {
 	ctx := cmdContext(cmd)
-	ctx = context.WithValue(ctx, keyPrefix(cmd)+key, val)
+	ctx = context.WithValue(ctx, ctxKey(keyPrefix(cmd)+key), val)
 	cmd.SetContext(ctx)
 }
 
