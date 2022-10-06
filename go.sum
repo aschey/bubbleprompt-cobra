@@ -4,6 +4,8 @@ github.com/alecthomas/chroma/v2 v2.3.0/go.mod h1:mZxeWZlxP2Dy+/8cBob2PYd8O2DwNAz
 github.com/alecthomas/participle/v2 v2.0.0-beta.5 h1:y6dsSYVb1G5eK6mgmy+BgI3Mw35a3WghArZ/Hbebrjo=
 github.com/alecthomas/participle/v2 v2.0.0-beta.5/go.mod h1:RC764t6n4L8D8ITAJv0qdokritYSNR3wV5cVwmIEaMM=
 github.com/alecthomas/repr v0.1.0 h1:ENn2e1+J3k09gyj2shc0dHr/yjaWSHRlrJ4DPMevDqE=
+github.com/aschey/bubbleprompt v0.0.0-20221006023413-1056d02df4b2 h1:pCK23xFJ8yXOoYOkgJv03HXXRpnwbh3bQenwQdXNBMc=
+github.com/aschey/bubbleprompt v0.0.0-20221006023413-1056d02df4b2/go.mod h1:M+OHNokqk/lC/n6Zv8Xadkw2fqpIrVhkMyGJUM4Wqik=
 github.com/aschey/bubbletea v0.20.1-0.20221005031422-8b90e8e97d55 h1:Uc6vdz96vGq5K0cjzy8+hp+fqYybvuDj59CmoLozU5c=
 github.com/aschey/bubbletea v0.20.1-0.20221005031422-8b90e8e97d55/go.mod h1:JAfGK/3/pPKHTnAS8JIE2u9f61BjWTQY57RbT25aMXU=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=

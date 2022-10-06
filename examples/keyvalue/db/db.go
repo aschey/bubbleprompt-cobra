@@ -13,6 +13,7 @@ import (
 	cprompt "github.com/aschey/bubbleprompt-cobra"
 	"github.com/aschey/bubbleprompt/executor"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -150,7 +151,9 @@ func getExecCommand(methodName string, returnList bool) func(cmd *cobra.Command,
 		if returnList {
 			retModel = model.NewList(retVals)
 		} else {
-			retModel = executor.NewStringModel(strings.Join(retVals, ","))
+			retModel = executor.NewStringModel(lipgloss.NewStyle().
+				Foreground(lipgloss.Color("245")).
+				Render(strings.Join(retVals, ",")))
 		}
 
 		return cprompt.ExecModel(cmd, retModel)

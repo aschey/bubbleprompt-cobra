@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/arriqaaq/flashdb v0.1.7-0.20220531093229-cc4605a9db90
-	github.com/aschey/bubbleprompt v0.0.0-20221006011505-d1ad646665e3
+	github.com/aschey/bubbleprompt v0.0.0-20221006023413-1056d02df4b2
 	github.com/aschey/bubbleprompt-cobra v0.0.0
 	github.com/charmbracelet/bubbles v0.14.0
 	github.com/charmbracelet/bubbletea v0.22.1
