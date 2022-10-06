@@ -1,0 +1,32 @@
+version: "3"
+
+includes:
+  os: ./Taskfile_{{OS}}.yml
+
+tasks:
+  setup:
+    cmds:
+      - go install github.com/onsi/ginkgo/v2/ginkgo@latest
+  test:
+    cmds:
+      - ginkgo -v -race -p ./test
+  covTest:
+    cmds:
+      - go test ./test -v -tuicover -tuicoverpkg ../...
+  buildCoverage:
+    deps: [covTest]
+    cmds:
+      - go tool cover -html test/coverage.out -o coverage.html
+  coverage:
+    cmds:
+      - task: buildCoverage
+      - task: os:coverage
+  examples:
+    cmds:
+      - task: os:examples
+  update:
+    cmds:
+      - go get -t -u ./...
+      - go mod tidy
+      - cd examples && go get -t -u ./...
+      - cd examples && go mod tidy

@@ -3,12 +3,12 @@ module github.com/aschey/bubbleprompt-cobra
 go 1.18
 
 require (
-	github.com/aschey/bubbleprompt v0.0.0-20220929040738-c6327128dc0c
+	github.com/aschey/bubbleprompt v0.0.0-20221006011505-d1ad646665e3
 	github.com/charmbracelet/bubbletea v0.22.1
 	github.com/charmbracelet/lipgloss v0.6.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/exp v0.0.0-20220921164117-439092de6870
+	golang.org/x/exp v0.0.0-20221004215720-b9f4876ce741
 )
 
 require (
@@ -36,4 +36,4 @@ require (
 
 replace github.com/aschey/bubbleprompt => ../bubbleprompt
 
-replace github.com/charmbracelet/bubbletea => github.com/aschey/bubbletea v0.20.1-0.20221001181920-e339dd2864de
+replace github.com/charmbracelet/bubbletea => github.com/aschey/bubbletea v0.20.1-0.20221005031422-8b90e8e97d55

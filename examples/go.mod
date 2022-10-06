@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/arriqaaq/flashdb v0.1.7-0.20220531093229-cc4605a9db90
-	github.com/aschey/bubbleprompt v0.0.0-20220929040738-c6327128dc0c
+	github.com/aschey/bubbleprompt v0.0.0-20221006011505-d1ad646665e3
 	github.com/aschey/bubbleprompt-cobra v0.0.0
 	github.com/charmbracelet/bubbles v0.14.0
 	github.com/charmbracelet/bubbletea v0.22.1
@@ -36,7 +36,7 @@ require (
 	github.com/rivo/uniseg v0.4.2 // indirect
 	github.com/sahilm/fuzzy v0.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/exp v0.0.0-20220921164117-439092de6870 // indirect
+	golang.org/x/exp v0.0.0-20221004215720-b9f4876ce741 // indirect
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
 	golang.org/x/term v0.0.0-20220919170432-7a66f970e087 // indirect
 	golang.org/x/text v0.3.7 // indirect
@@ -48,6 +48,6 @@ replace github.com/arriqaaq/flashdb => github.com/aschey/flashdb v0.0.0-20220928
 
 replace github.com/arriqaaq/set => github.com/aschey/set v0.0.0-20221003220052-d4d3fc9267fa
 
-replace github.com/charmbracelet/bubbletea => github.com/aschey/bubbletea v0.20.1-0.20221001181920-e339dd2864de
+replace github.com/charmbracelet/bubbletea => github.com/aschey/bubbletea v0.20.1-0.20221005031422-8b90e8e97d55
 
 replace github.com/aschey/bubbleprompt => ../../bubbleprompt
