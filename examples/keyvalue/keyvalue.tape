@@ -17,7 +17,9 @@ Sleep 500ms
 Type "1"
 
 Space
+Sleep 500ms
 Tab
+Sleep 500ms
 Space
 Sleep 500ms
 
