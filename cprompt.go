@@ -271,7 +271,8 @@ func ExecModel(cmd *cobra.Command, model tea.Model) error {
 		setModel(cmd.Root(), model)
 		return nil
 	} else {
-		return tea.NewProgram(model).Start()
+		_, err := tea.NewProgram(model).Run()
+		return err
 	}
 }
 
@@ -340,5 +341,6 @@ func NewPrompt(cmd *cobra.Command, options ...Option) (Model, error) {
 }
 
 func (m Model) Start() error {
-	return tea.NewProgram(m, tea.WithFilter(prompt.MsgFilter)).Start()
+	_, err := tea.NewProgram(m, tea.WithFilter(prompt.MsgFilter)).Run()
+	return err
 }
