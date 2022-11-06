@@ -22,7 +22,7 @@ type Model struct {
 	prompt    prompt.Model[CobraMetadata]
 	completer *completerModel
 }
-type CompleterStart func(document prompt.Document, promptModel prompt.Model[CobraMetadata])
+type CompleterStart func(promptModel prompt.Model[CobraMetadata])
 type CompleterFinish func(suggestions []input.Suggestion[CobraMetadata], err error) ([]input.Suggestion[CobraMetadata], error)
 type ExecutorStart func(input string, selectedSuggestion *input.Suggestion[CobraMetadata])
 type ExecutorFinish func(model tea.Model, err error) (tea.Model, error)
@@ -58,9 +58,9 @@ func (m Model) View() string {
 	return m.prompt.View()
 }
 
-func (m *completerModel) completer(document prompt.Document, promptModel prompt.Model[CobraMetadata]) ([]input.Suggestion[CobraMetadata], error) {
+func (m *completerModel) completer(promptModel prompt.Model[CobraMetadata]) ([]input.Suggestion[CobraMetadata], error) {
 	if m.onCompleterStart != nil {
-		m.onCompleterStart(document, promptModel)
+		m.onCompleterStart(promptModel)
 	}
 	suggestions := []input.Suggestion[CobraMetadata]{}
 
@@ -340,5 +340,5 @@ func NewPrompt(cmd *cobra.Command, options ...Option) (Model, error) {
 }
 
 func (m Model) Start() error {
-	return tea.NewProgram(m, tea.WithOnQuit(prompt.OnQuit)).Start()
+	return tea.NewProgram(m, tea.WithFilter(prompt.MsgFilter)).Start()
 }
