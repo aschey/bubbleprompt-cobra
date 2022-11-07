@@ -12,7 +12,6 @@ import (
 	"github.com/aschey/bubbleprompt/input"
 	"github.com/aschey/bubbleprompt/input/commandinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/exp/slices"
@@ -118,22 +117,18 @@ func (m *completerModel) completer(promptModel prompt.Model[CobraMetadata]) ([]i
 				placeholder = fmt.Sprintf("<%s>", placeholder)
 			}
 			flags = append(flags, commandinput.Flag{
-				Short:            flag.Shorthand,
-				Long:             flag.Name,
-				RequiresArg:      flag.NoOptDefVal == "",
-				Placeholder:      placeholder,
-				Description:      flag.Usage,
-				PlaceholderStyle: input.Text{Style: lipgloss.NewStyle().Foreground(lipgloss.Color("14"))},
+				Short:       flag.Shorthand,
+				Long:        flag.Name,
+				RequiresArg: flag.NoOptDefVal == "",
+				Placeholder: m.textInput.NewFlagPlaceholder(placeholder),
+				Description: flag.Usage,
 			})
 		})
 
 		flagSuggestions := m.textInput.FlagSuggestions(text, flags, func(flag commandinput.Flag) CobraMetadata {
 			m := commandinput.CmdMetadata{
 				PreservePlaceholder: getPreservePlaceholder(cobraCommand, flag.Long),
-				FlagPlaceholder: commandinput.Placeholder{
-					Text:  flag.Placeholder,
-					Style: input.Text{Style: lipgloss.NewStyle().Foreground(lipgloss.Color("14"))},
-				},
+				FlagPlaceholder:     flag.Placeholder,
 			}
 			return CobraMetadata{
 				m,
@@ -175,13 +170,13 @@ func (m *completerModel) getSubcommandSuggestions(command cobra.Command) []input
 			args := []commandinput.PositionalArg{}
 
 			for _, arg := range placeholders {
-				args = append(args, commandinput.NewPositionalArg(arg))
+				args = append(args, m.textInput.NewPositionalArg(arg))
 			}
 
 			cobraCommand := c
 			hasFlags := hasUserDefinedFlags(c)
 
-			if len(args) > 0 && args[len(args)-1].Placeholder == "[flags]" {
+			if len(args) > 0 && args[len(args)-1].Placeholder() == "[flags]" {
 				hasFlags = false
 			}
 			suggestions = append(suggestions, input.Suggestion[CobraMetadata]{
