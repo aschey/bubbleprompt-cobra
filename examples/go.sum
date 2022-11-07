@@ -14,8 +14,8 @@ github.com/arriqaaq/hash v0.1.2/go.mod h1:WB3wOwaJdkNPb8DX+J2YHivF9y+sJkXhM1B4gH
 github.com/arriqaaq/skiplist v0.1.6 h1:OtJ/6pcMFYnV22RwFUbz8CophthySLRq0vVAfWRAvzc=
 github.com/arriqaaq/zset v0.1.2 h1:vF/B95Unz/zA0Ttmc1XHCQVyxIXd7B6PNc3H4aCOdyo=
 github.com/arriqaaq/zset v0.1.2/go.mod h1:5DoabYGc0lHZnhhzZoYawG015X7i+bphIsa6qEekFuI=
-github.com/aschey/bubbleprompt v0.0.0-20221107032428-d10ef1b7c756 h1:lItvhCcLdIROYrh8AwTtWcurCe5sW72KbMua2ruFaQM=
-github.com/aschey/bubbleprompt v0.0.0-20221107032428-d10ef1b7c756/go.mod h1:2sJgLtYPi9KN++qSAITBs8m8jnbdnPvhdE7/B51OoQA=
+github.com/aschey/bubbleprompt v0.0.0-20221107053336-b0748b7db732 h1:0CQCVK8Qetq+YXmBEcuKS+CJA2qpHGjHcxB56rmnnQ4=
+github.com/aschey/bubbleprompt v0.0.0-20221107053336-b0748b7db732/go.mod h1:eqVZTP30IKqNf3bf/9vIyAMo5k4wbwFAliUA1BfRFoo=
 github.com/aschey/flashdb v0.0.0-20220928141429-3c4b618d1c38 h1:E1eKye8R13ERjuC0SkN9M07/HFLpaIfkIBuVwM1HHmI=
 github.com/aschey/flashdb v0.0.0-20220928141429-3c4b618d1c38/go.mod h1:a85hbOVNwN9nTFBnl8pYB6qGqelfg/l1GSgxf9yB+Bk=
 github.com/aschey/set v0.0.0-20221003220052-d4d3fc9267fa h1:VtXu8Pjq9SAi9r4PQjy2CvPhzP9rSds35d+qknfvtVE=
