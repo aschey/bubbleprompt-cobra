@@ -71,12 +71,12 @@ func (m *completerModel) completer(promptModel prompt.Model[CobraMetadata]) ([]i
 	if err != nil {
 		return nil, err
 	}
-	text := m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp)
+	text := m.textInput.CurrentTokenBeforeCursor()
 	level := m.getLevel(*cobraCommand)
 
 	if cobraCommand.ValidArgsFunction != nil {
 		completed := m.textInput.CompletedArgsBeforeCursor()[level:]
-		validArgs, _ := cobraCommand.ValidArgsFunction(cobraCommand, completed, m.textInput.CurrentTokenBeforeCursor(commandinput.RoundDown))
+		validArgs, _ := cobraCommand.ValidArgsFunction(cobraCommand, completed, m.textInput.CurrentTokenBeforeCursorRoundDown())
 
 		for _, arg := range validArgs {
 			suggestions = append(suggestions, input.Suggestion[CobraMetadata]{
@@ -101,7 +101,7 @@ func (m *completerModel) completer(promptModel prompt.Model[CobraMetadata]) ([]i
 	}
 	argsBeforeCursor := m.textInput.ArgsBeforeCursor()
 
-	if err == nil && (len(argsBeforeCursor)-level >= placeholdersBeforeFlags || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp), "-")) {
+	if err == nil && (len(argsBeforeCursor)-level >= placeholdersBeforeFlags || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(), "-")) {
 		flags := []commandinput.Flag{}
 
 		cobraCommand.Flags().VisitAll(func(flag *pflag.Flag) {
@@ -141,7 +141,7 @@ func (m *completerModel) completer(promptModel prompt.Model[CobraMetadata]) ([]i
 		}
 	}
 
-	result := completers.FilterHasPrefix(m.textInput.CurrentTokenBeforeCursor(commandinput.RoundUp), suggestions)
+	result := completers.FilterHasPrefix(m.textInput.CurrentTokenBeforeCursor(), suggestions)
 	if m.onCompleterFinish != nil {
 		return m.onCompleterFinish(result, nil)
 	}
