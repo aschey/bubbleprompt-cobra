@@ -49,7 +49,7 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	p, cmd := m.prompt.Update(msg)
-	m.prompt = p
+	m.prompt = p.(prompt.Model[CobraMetadata])
 	return m, cmd
 }
 
@@ -119,7 +119,6 @@ func (m *completerModel) completer(promptModel prompt.Model[CobraMetadata]) ([]i
 			flags = append(flags, commandinput.Flag{
 				Short:       flag.Shorthand,
 				Long:        flag.Name,
-				RequiresArg: flag.NoOptDefVal == "",
 				Placeholder: m.textInput.NewFlagPlaceholder(placeholder),
 				Description: flag.Usage,
 			})
