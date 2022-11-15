@@ -13,35 +13,35 @@ func WithIgnoreCmds(cmds ...string) Option {
 
 func WithOnCompleterStart(onCompleterStart CompleterStart) Option {
 	return func(model *Model) error {
-		model.completer.onCompleterStart = onCompleterStart
+		model.app.onCompleterStart = onCompleterStart
 		return nil
 	}
 }
 
 func WithOnCompleterFinish(onCompleterStart CompleterFinish) Option {
 	return func(model *Model) error {
-		model.completer.onCompleterFinish = onCompleterStart
+		model.app.onCompleterFinish = onCompleterStart
 		return nil
 	}
 }
 
 func WithOnExecutorStart(onExecutorStart ExecutorStart) Option {
 	return func(model *Model) error {
-		model.completer.onExecutorStart = onExecutorStart
+		model.app.onExecutorStart = onExecutorStart
 		return nil
 	}
 }
 
 func WithOnExecutorFinish(onExecutorFinish ExecutorFinish) Option {
 	return func(model *Model) error {
-		model.completer.onExecutorFinish = onExecutorFinish
+		model.app.onExecutorFinish = onExecutorFinish
 		return nil
 	}
 }
 
 func WithPromptOptions(options ...prompt.Option[CobraMetadata]) Option {
 	return func(model *Model) error {
-		prompt, err := buildPromptModel(*model.completer, options...)
+		prompt, err := buildAppModel(*model.app, options...)
 		if err != nil {
 			return err
 		}

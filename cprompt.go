@@ -18,15 +18,15 @@ import (
 )
 
 type Model struct {
-	prompt    prompt.Model[CobraMetadata]
-	completer *completerModel
+	prompt prompt.Model[CobraMetadata]
+	app    *appModel
 }
 type CompleterStart func(promptModel prompt.Model[CobraMetadata])
 type CompleterFinish func(suggestions []input.Suggestion[CobraMetadata], err error) ([]input.Suggestion[CobraMetadata], error)
 type ExecutorStart func(input string, selectedSuggestion *input.Suggestion[CobraMetadata])
 type ExecutorFinish func(model tea.Model, err error) (tea.Model, error)
 
-type completerModel struct {
+type appModel struct {
 	textInput         *commandinput.Model[CobraMetadata]
 	rootCmd           *cobra.Command
 	onCompleterStart  CompleterStart
@@ -57,7 +57,7 @@ func (m Model) View() string {
 	return m.prompt.View()
 }
 
-func (m *completerModel) completer(promptModel prompt.Model[CobraMetadata]) ([]input.Suggestion[CobraMetadata], error) {
+func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]input.Suggestion[CobraMetadata], error) {
 	if m.onCompleterStart != nil {
 		m.onCompleterStart(promptModel)
 	}
@@ -147,7 +147,7 @@ func (m *completerModel) completer(promptModel prompt.Model[CobraMetadata]) ([]i
 	return result, nil
 }
 
-func (m *completerModel) getLevel(command cobra.Command) int {
+func (m appModel) getLevel(command cobra.Command) int {
 	level := 0
 	for command.HasParent() {
 		level++
@@ -156,7 +156,7 @@ func (m *completerModel) getLevel(command cobra.Command) int {
 	return level - 1
 }
 
-func (m *completerModel) getSubcommandSuggestions(command cobra.Command) []input.Suggestion[CobraMetadata] {
+func (m appModel) getSubcommandSuggestions(command cobra.Command) []input.Suggestion[CobraMetadata] {
 	suggestions := []input.Suggestion[CobraMetadata]{}
 	level := m.getLevel(command)
 	for _, c := range command.Commands() {
@@ -192,9 +192,13 @@ func (m *completerModel) getSubcommandSuggestions(command cobra.Command) []input
 	return suggestions
 }
 
-func (m *completerModel) executor(input string, selectedSuggestion *input.Suggestion[CobraMetadata]) (tea.Model, error) {
+func (m appModel) Update(msg tea.Msg) (prompt.AppModel[CobraMetadata], tea.Cmd) {
+	return m, nil
+}
+
+func (m appModel) Execute(input string, promptModel *prompt.Model[CobraMetadata]) (tea.Model, error) {
 	if m.onExecutorStart != nil {
-		m.onExecutorStart(input, selectedSuggestion)
+		m.onExecutorStart(input, promptModel.SelectedSuggestion())
 	}
 	m.rootCmd.SetArgs(m.textInput.AllValues())
 
@@ -241,23 +245,23 @@ func (m *completerModel) executor(input string, selectedSuggestion *input.Sugges
 }
 
 func (m *Model) SetIgnoreCmds(ignoreCmds ...string) {
-	m.completer.ignoreCmds = ignoreCmds
+	m.app.ignoreCmds = ignoreCmds
 }
 
 func (m *Model) SetOnCompleterStart(onCompleterStart CompleterStart) {
-	m.completer.onCompleterStart = onCompleterStart
+	m.app.onCompleterStart = onCompleterStart
 }
 
 func (m *Model) SetOnCompleterFinish(onCompleterFinish CompleterFinish) {
-	m.completer.onCompleterFinish = onCompleterFinish
+	m.app.onCompleterFinish = onCompleterFinish
 }
 
 func (m *Model) SetOnExecutorStart(onExecutorStart ExecutorStart) {
-	m.completer.onExecutorStart = onExecutorStart
+	m.app.onExecutorStart = onExecutorStart
 }
 
 func (m *Model) SetOnExecutorFinish(onExecutorFinish ExecutorFinish) {
-	m.completer.onExecutorFinish = onExecutorFinish
+	m.app.onExecutorFinish = onExecutorFinish
 }
 
 func ExecModel(cmd *cobra.Command, model tea.Model) error {
@@ -283,11 +287,10 @@ func FilterShellCompletions(options []string, toComplete string) []string {
 	return results
 }
 
-func buildPromptModel(completerModel completerModel, opts ...prompt.Option[CobraMetadata]) (prompt.Model[CobraMetadata], error) {
-	return prompt.New(
-		completerModel.completer,
-		completerModel.executor,
-		completerModel.textInput,
+func buildAppModel(app appModel, opts ...prompt.Option[CobraMetadata]) (prompt.Model[CobraMetadata], error) {
+	return prompt.New[CobraMetadata](
+		app,
+		app.textInput,
 		opts...,
 	)
 }
@@ -310,19 +313,19 @@ func NewPrompt(cmd *cobra.Command, options ...Option) (Model, error) {
 	curCmd := cmd.Name()
 
 	textInput := commandinput.New[CobraMetadata]()
-	completerModel := completerModel{
+	app := appModel{
 		rootCmd:    rootCmd,
 		textInput:  textInput,
 		ignoreCmds: []string{curCmd, "completion", "help"},
 	}
-	prompt, err := buildPromptModel(completerModel)
+	prompt, err := buildAppModel(app)
 	if err != nil {
 		return Model{}, err
 	}
 
 	m := Model{
-		prompt:    prompt,
-		completer: &completerModel,
+		prompt: prompt,
+		app:    &app,
 	}
 
 	for _, option := range options {
