@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/arriqaaq/flashdb v0.1.7-0.20220531093229-cc4605a9db90
-	github.com/aschey/bubbleprompt v0.0.0-20221115032921-66b5ce3a7ee6
+	github.com/aschey/bubbleprompt v0.0.0-20221116041313-4cde4109ef33
 	github.com/aschey/bubbleprompt-cobra v0.0.0
 	github.com/charmbracelet/bubbles v0.14.0
 	github.com/charmbracelet/bubbletea v0.22.2-0.20221013054030-9545e7cee210
@@ -33,7 +33,7 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.13.0 // indirect
-	github.com/rivo/uniseg v0.4.2 // indirect
+	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/sahilm/fuzzy v0.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/exp v0.0.0-20221111204811-129d8d6c17ab // indirect

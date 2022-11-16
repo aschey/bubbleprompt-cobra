@@ -102,7 +102,7 @@ func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]input.Sug
 	argsBeforeCursor := m.textInput.ArgsBeforeCursor()
 
 	if err == nil && (len(argsBeforeCursor)-level >= placeholdersBeforeFlags || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(), "-")) {
-		flags := []commandinput.Flag{}
+		flags := []commandinput.FlagInput{}
 
 		cobraCommand.Flags().VisitAll(func(flag *pflag.Flag) {
 			if flag.Name == "help" {
@@ -116,7 +116,7 @@ func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]input.Sug
 				}
 				placeholder = fmt.Sprintf("<%s>", placeholder)
 			}
-			flags = append(flags, commandinput.Flag{
+			flags = append(flags, commandinput.FlagInput{
 				Short:       flag.Shorthand,
 				Long:        flag.Name,
 				Placeholder: m.textInput.NewFlagPlaceholder(placeholder),
@@ -124,7 +124,7 @@ func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]input.Sug
 			})
 		})
 
-		flagSuggestions := m.textInput.FlagSuggestions(text, flags, func(flag commandinput.Flag) CobraMetadata {
+		flagSuggestions := m.textInput.FlagSuggestions(text, flags, func(flag commandinput.FlagInput) CobraMetadata {
 			m := commandinput.CmdMetadata{
 				PreservePlaceholder: getPreservePlaceholder(cobraCommand, flag.Long),
 				FlagPlaceholder:     flag.Placeholder,
@@ -200,19 +200,23 @@ func (m appModel) Execute(input string, promptModel *prompt.Model[CobraMetadata]
 	if m.onExecutorStart != nil {
 		m.onExecutorStart(input, promptModel.SelectedSuggestion())
 	}
-	m.rootCmd.SetArgs(m.textInput.AllValues())
+	all := m.textInput.AllValues()
+	if len(all[0]) == 0 {
+		err := fmt.Errorf("No command selected")
+		if m.onExecutorFinish != nil {
+			return m.onExecutorFinish(nil, err)
+		}
+		return nil, err
+	}
+
+	m.rootCmd.SetArgs(all)
 
 	// Reset flags before each run to ensure old values are cleared out
-	cmd, _, _ := m.rootCmd.Find(m.textInput.AllValues())
+	cmd, _, _ := m.rootCmd.Find(all)
 	if cmd != nil {
 		cmd.Flags().VisitAll(func(f *pflag.Flag) {
 			_ = f.Value.Set(f.DefValue)
 		})
-	}
-
-	selected := m.textInput.SelectedCommand()
-	if selected == nil {
-		return nil, fmt.Errorf("No command selected")
 	}
 
 	rescueStdout := os.Stdout
