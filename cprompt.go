@@ -192,7 +192,7 @@ func (m appModel) getSubcommandSuggestions(command cobra.Command) []input.Sugges
 	return suggestions
 }
 
-func (m appModel) Update(msg tea.Msg) (prompt.AppModel[CobraMetadata], tea.Cmd) {
+func (m appModel) Update(msg tea.Msg) (prompt.InputHandler[CobraMetadata], tea.Cmd) {
 	return m, nil
 }
 
