@@ -9,6 +9,7 @@ import (
 
 	prompt "github.com/aschey/bubbleprompt"
 	cprompt "github.com/aschey/bubbleprompt-cobra"
+	"github.com/aschey/bubbleprompt/suggestion"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
@@ -24,13 +25,11 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		promptModel, err := cprompt.NewPrompt(cmd)
-		if err != nil {
-			return err
-		}
+		promptModel := cprompt.NewPrompt(cmd)
 
 		model := model{inner: promptModel}
-		return tea.NewProgram(&model, tea.WithFilter(prompt.MsgFilter)).Start()
+		_, err := tea.NewProgram(&model, tea.WithFilter(prompt.MsgFilter)).Run()
+		return err
 	},
 }
 
@@ -39,11 +38,11 @@ type model struct {
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(m.inner.Init(), prompt.PeriodicCompleter(time.Second))
+	return tea.Batch(m.inner.Init(), suggestion.PeriodicCompleter(time.Second))
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if _, ok := msg.(prompt.PeriodicCompleterMsg); ok {
+	if _, ok := msg.(suggestion.PeriodicCompleterMsg); ok {
 		_ = db.LoadDb()
 	}
 	model, cmd := m.inner.Update(msg)

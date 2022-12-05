@@ -15,3 +15,6 @@
 # vendor/
 .bin
 .vscode
+
+go.work
+go.work.sum
