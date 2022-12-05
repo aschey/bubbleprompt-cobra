@@ -3,7 +3,7 @@ module github.com/aschey/bubbleprompt-cobra
 go 1.19
 
 require (
-	github.com/aschey/bubbleprompt v0.0.0-20221204210011-8304b2edad03
+	github.com/aschey/bubbleprompt v0.0.0-20221205054714-76849fd4a3ff
 	github.com/charmbracelet/bubbletea v0.23.1
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5

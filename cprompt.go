@@ -100,8 +100,10 @@ func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]suggestio
 		placeholdersBeforeFlags--
 	}
 	argsBeforeCursor := m.textInput.ArgsBeforeCursor()
+	flags := m.textInput.ParsedValue().Flags
 
-	if err == nil && (len(argsBeforeCursor)-level >= placeholdersBeforeFlags || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(), "-")) {
+	// Always show flag suggestions if the user already entered a flag
+	if err == nil && (len(argsBeforeCursor)-level >= placeholdersBeforeFlags || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor(), "-") || len(flags) > 0) {
 		flags := []commandinput.FlagInput{}
 
 		cobraCommand.Flags().VisitAll(func(flag *pflag.Flag) {

@@ -14,8 +14,8 @@ github.com/arriqaaq/hash v0.1.2/go.mod h1:WB3wOwaJdkNPb8DX+J2YHivF9y+sJkXhM1B4gH
 github.com/arriqaaq/skiplist v0.1.6 h1:OtJ/6pcMFYnV22RwFUbz8CophthySLRq0vVAfWRAvzc=
 github.com/arriqaaq/zset v0.1.2 h1:vF/B95Unz/zA0Ttmc1XHCQVyxIXd7B6PNc3H4aCOdyo=
 github.com/arriqaaq/zset v0.1.2/go.mod h1:5DoabYGc0lHZnhhzZoYawG015X7i+bphIsa6qEekFuI=
-github.com/aschey/bubbleprompt v0.0.0-20221204210011-8304b2edad03 h1:rhnhxlyno3lKOyCfUokOBCvzm9o02o1mLXpzkDpampc=
-github.com/aschey/bubbleprompt v0.0.0-20221204210011-8304b2edad03/go.mod h1:YPgoh3X5lpxPMWROHPEdvPLhZB6csBY4k1KG5Lob7rg=
+github.com/aschey/bubbleprompt v0.0.0-20221205054714-76849fd4a3ff h1:QmS4yeTnYVtDfaKMKALRLlxZVwJD6YrhwCrWAnwq2E0=
+github.com/aschey/bubbleprompt v0.0.0-20221205054714-76849fd4a3ff/go.mod h1:YPgoh3X5lpxPMWROHPEdvPLhZB6csBY4k1KG5Lob7rg=
 github.com/aschey/bubbletea v0.20.1-0.20221129055038-2361f5df1cc5 h1:iPmgWdFS9bjF3W0wsxnkeyWRmyFS3WB7FESyDfq0rig=
 github.com/aschey/bubbletea v0.20.1-0.20221129055038-2361f5df1cc5/go.mod h1:JAfGK/3/pPKHTnAS8JIE2u9f61BjWTQY57RbT25aMXU=
 github.com/aschey/flashdb v0.0.0-20220928141429-3c4b618d1c38 h1:E1eKye8R13ERjuC0SkN9M07/HFLpaIfkIBuVwM1HHmI=
