@@ -37,7 +37,7 @@ type appModel struct {
 }
 
 type CobraMetadata struct {
-	commandinput.CmdMetadata
+	commandinput.CommandMetadata
 	cobraCommand *cobra.Command
 }
 
@@ -82,7 +82,7 @@ func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]suggestio
 			suggestions = append(suggestions, suggestion.Suggestion[CobraMetadata]{
 				Text: arg,
 				Metadata: CobraMetadata{
-					commandinput.CmdMetadata{ShowFlagPlaceholder: hasUserDefinedFlags(cobraCommand)},
+					commandinput.CommandMetadata{ShowFlagPlaceholder: hasUserDefinedFlags(cobraCommand)},
 					cobraCommand,
 				},
 			})
@@ -119,17 +119,17 @@ func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]suggestio
 				placeholder = fmt.Sprintf("<%s>", placeholder)
 			}
 			flags = append(flags, commandinput.FlagInput{
-				Short:       flag.Shorthand,
-				Long:        flag.Name,
-				Placeholder: m.textInput.NewFlagPlaceholder(placeholder),
-				Description: flag.Usage,
+				Short:          flag.Shorthand,
+				Long:           flag.Name,
+				ArgPlaceholder: m.textInput.NewFlagPlaceholder(placeholder),
+				Description:    flag.Usage,
 			})
 		})
 
 		flagSuggestions := m.textInput.FlagSuggestions(text, flags, func(flag commandinput.FlagInput) CobraMetadata {
-			m := commandinput.CmdMetadata{
+			m := commandinput.CommandMetadata{
 				PreservePlaceholder: getPreservePlaceholder(cobraCommand, flag.Long),
-				FlagPlaceholder:     flag.Placeholder,
+				FlagArgPlaceholder:  flag.ArgPlaceholder,
 			}
 			return CobraMetadata{
 				m,
@@ -184,7 +184,7 @@ func (m appModel) getSubcommandSuggestions(command cobra.Command) []suggestion.S
 				Text:        c.Name(),
 				Description: c.Short,
 				Metadata: CobraMetadata{
-					commandinput.CmdMetadata{PositionalArgs: args, Level: level + 1, ShowFlagPlaceholder: hasFlags},
+					commandinput.CommandMetadata{PositionalArgs: args, Level: level + 1, ShowFlagPlaceholder: hasFlags},
 					cobraCommand,
 				},
 			})
@@ -202,7 +202,7 @@ func (m appModel) Execute(input string, promptModel *prompt.Model[CobraMetadata]
 	if m.onExecutorStart != nil {
 		m.onExecutorStart(input, promptModel.SuggestionManager().SelectedSuggestion())
 	}
-	all := m.textInput.AllValues()
+	all := m.textInput.Values()
 	if len(all[0]) == 0 {
 		err := fmt.Errorf("No command selected")
 		if m.onExecutorFinish != nil {
@@ -306,6 +306,11 @@ func buildAppModel(app appModel, opts ...prompt.Option[CobraMetadata]) prompt.Mo
 }
 
 func hasUserDefinedFlags(command *cobra.Command) bool {
+	show := getShowFlagPlaceholder(command)
+	if show != nil {
+		return *show
+	}
+
 	hasFlags := false
 	command.LocalFlags().VisitAll(func(f *pflag.Flag) {
 		if f.Name != "help" {

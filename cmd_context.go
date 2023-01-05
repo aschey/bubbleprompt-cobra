@@ -51,6 +51,19 @@ func getPreservePlaceholder(cmd *cobra.Command, flag string) bool {
 	return val.(bool)
 }
 
+func ShowFlagPlaceholder(cmd *cobra.Command, show bool) {
+	updateContext(cmd, "showFlagPlaceholder", show)
+}
+
+func getShowFlagPlaceholder(cmd *cobra.Command) *bool {
+	val := contextVal(cmd, "showFlagPlaceholder")
+	if val == nil {
+		return nil
+	}
+	boolVal := val.(bool)
+	return &boolVal
+}
+
 func model(cmd *cobra.Command) tea.Model {
 	val := contextVal(cmd, modelKey)
 	if val == nil {

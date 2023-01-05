@@ -79,9 +79,9 @@ var hashCmds = []*cobra.Command{
 }
 
 var getCmd = &cobra.Command{
-	Use:   "get <key> [field]",
-	Short: "Get the values for the key",
-	Args:  cobra.RangeArgs(1, 2),
+	Use:               "get <key> <field|-a>",
+	Short:             "Get the values for the key",
+	ValidArgsFunction: db.HGetKeys,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if all, _ := cmd.Flags().GetBool("all"); all {
 			return db.GetExecCommand("HGetAll")(cmd, args)
@@ -93,5 +93,6 @@ var getCmd = &cobra.Command{
 func init() {
 	hashCmd.AddCommand(hashCmds...)
 	getCmd.Flags().BoolP("all", "a", false, "Get all fields")
-	cprompt.PreservePlaceholder(getCmd, "all")
+	//cprompt.PreservePlaceholder(getCmd, "all")
+	cprompt.ShowFlagPlaceholder(getCmd, false)
 }

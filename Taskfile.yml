@@ -28,5 +28,4 @@ tasks:
     cmds:
       - go get -t -u ./...
       - go mod tidy
-      - cd examples && go get -t -u ./...
-      - cd examples && go mod tidy
+      - cd examples && go get -t -u ./... && go mod tidy
