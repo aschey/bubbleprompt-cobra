@@ -62,7 +62,6 @@ var setCommands = []*cobra.Command{
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: db.SGetKeys,
 	},
-
 	{
 		Use:               "move <source> <destination> <member>",
 		Short:             "Move the member from the source to the destination",

@@ -47,8 +47,8 @@ var hashCmds = []*cobra.Command{
 		Short:             "Get all the fields from the key",
 		RunE:              db.GetListExecCommand("HFields"),
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: db.HGetKeys},
-
+		ValidArgsFunction: db.HGetKeys,
+	},
 	{
 		Use:               "length <key>",
 		Short:             "Check how many values are in the key",
