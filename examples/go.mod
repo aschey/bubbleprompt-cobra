@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/arriqaaq/flashdb v0.1.7-0.20220531093229-cc4605a9db90
-	github.com/aschey/bubbleprompt v0.0.0-20230122204535-194a5fac82f6
+	github.com/aschey/bubbleprompt v0.0.0-20230125000616-4619dd662bd9
 	github.com/aschey/bubbleprompt-cobra v0.0.0
 	github.com/charmbracelet/bubbles v0.15.0
 	github.com/charmbracelet/bubbletea v0.23.1
@@ -36,7 +36,7 @@ require (
 	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/sahilm/fuzzy v0.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/exp v0.0.0-20230118134722-a68e582fa157 // indirect
+	golang.org/x/exp v0.0.0-20230124195608-d38c7dcee874 // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/term v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect

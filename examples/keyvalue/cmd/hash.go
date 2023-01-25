@@ -79,7 +79,7 @@ var hashCmds = []*cobra.Command{
 }
 
 var getCmd = &cobra.Command{
-	Use:               "get <key> <field|-a>",
+	Use:               "get <key> <field | -a>",
 	Short:             "Get the values for the key",
 	ValidArgsFunction: db.HGetKeys,
 	RunE: func(cmd *cobra.Command, args []string) error {

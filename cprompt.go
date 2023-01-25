@@ -22,6 +22,7 @@ type Model struct {
 	app    *appModel
 }
 type CompleterStart func(promptModel prompt.Model[CobraMetadata])
+
 type CompleterFinish func(suggestions []suggestion.Suggestion[CobraMetadata], err error) ([]suggestion.Suggestion[CobraMetadata], error)
 type ExecutorStart func(input string, selectedSuggestion *suggestion.Suggestion[CobraMetadata])
 type ExecutorFinish func(model tea.Model, err error) (tea.Model, error)
@@ -57,7 +58,9 @@ func (m Model) View() string {
 	return m.prompt.View()
 }
 
-func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]suggestion.Suggestion[CobraMetadata], error) {
+func (m appModel) Complete(
+	promptModel prompt.Model[CobraMetadata],
+) ([]suggestion.Suggestion[CobraMetadata], error) {
 	if m.onCompleterStart != nil {
 		m.onCompleterStart(promptModel)
 	}
@@ -66,7 +69,11 @@ func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]suggestio
 	var err error = nil
 	cobraCommand := m.rootCmd
 	if m.textInput.CommandCompleted() {
-		cobraCommand, _, err = m.rootCmd.Find(append([]string{m.textInput.CommandBeforeCursor()}, m.textInput.CompletedArgsBeforeCursor()...))
+		cobraCommand, _, err = m.rootCmd.Find(
+			append(
+				[]string{m.textInput.CommandBeforeCursor()},
+				m.textInput.CompletedArgsBeforeCursor()...),
+		)
 	}
 	if err != nil {
 		return nil, err
@@ -76,34 +83,49 @@ func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]suggestio
 
 	if cobraCommand.ValidArgsFunction != nil {
 		completed := m.textInput.CompletedArgsBeforeCursor()[level:]
-		validArgs, _ := cobraCommand.ValidArgsFunction(cobraCommand, completed, m.textInput.CurrentTokenBeforeCursorRoundDown().Value)
+		validArgs, _ := cobraCommand.ValidArgsFunction(
+			cobraCommand,
+			completed,
+			m.textInput.CurrentTokenBeforeCursorRoundDown().Value,
+		)
 
 		for _, arg := range validArgs {
 			suggestions = append(suggestions, suggestion.Suggestion[CobraMetadata]{
 				Text: arg,
 				Metadata: CobraMetadata{
-					commandinput.CommandMetadata{ShowFlagPlaceholder: hasUserDefinedFlags(cobraCommand)},
+					commandinput.CommandMetadata{
+						ShowFlagPlaceholder: hasUserDefinedFlags(cobraCommand),
+					},
 					cobraCommand,
 				},
 			})
 		}
 	}
-	suggestions = append(suggestions, m.getSubcommandSuggestions(*cobraCommand)...)
+	subcommandSuggestions, err := m.getSubcommandSuggestions(*cobraCommand)
+	if err != nil {
+		return nil, err
+	}
+	suggestions = append(suggestions, subcommandSuggestions...)
 
-	useParts := strings.Split(cobraCommand.Use, " ")
-	placeholders := []string{}
+	useParts := strings.SplitN(cobraCommand.Use, " ", 2)
+	placeholderStr := ""
 	if len(useParts) > 1 {
-		placeholders = useParts[1:]
+		placeholderStr = useParts[1]
+	}
+	placeholders, err := m.textInput.ParseUsage(placeholderStr)
+	if err != nil {
+		return nil, err
 	}
 	placeholdersBeforeFlags := len(placeholders)
-	if len(placeholders) > 0 && placeholders[len(placeholders)-1] == "[flags]" {
+	if len(placeholders) > 0 && placeholders[len(placeholders)-1].Placeholder() == "[flags]" {
 		placeholdersBeforeFlags--
 	}
 	argsBeforeCursor := m.textInput.ArgsBeforeCursor()
 	flags := m.textInput.ParsedValue().Flags
 
 	// Always show flag suggestions if the user already entered a flag
-	if err == nil && (len(argsBeforeCursor)-level >= placeholdersBeforeFlags || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor().Value, "-") || len(flags) > 0) {
+	if err == nil &&
+		(len(argsBeforeCursor)-level >= placeholdersBeforeFlags || strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor().Value, "-") || len(flags) > 0) {
 		flags := []commandinput.FlagInput{}
 
 		cobraCommand.Flags().VisitAll(func(flag *pflag.Flag) {
@@ -126,16 +148,20 @@ func (m appModel) Complete(promptModel prompt.Model[CobraMetadata]) ([]suggestio
 			})
 		})
 
-		flagSuggestions := m.textInput.FlagSuggestions(text, flags, func(flag commandinput.FlagInput) CobraMetadata {
-			m := commandinput.CommandMetadata{
-				PreservePlaceholder: getPreservePlaceholder(cobraCommand, flag.Long),
-				FlagArgPlaceholder:  flag.ArgPlaceholder,
-			}
-			return CobraMetadata{
-				m,
-				cobraCommand,
-			}
-		})
+		flagSuggestions := m.textInput.FlagSuggestions(
+			text,
+			flags,
+			func(flag commandinput.FlagInput) CobraMetadata {
+				m := commandinput.CommandMetadata{
+					PreservePlaceholder: getPreservePlaceholder(cobraCommand, flag.Long),
+					FlagArgPlaceholder:  flag.ArgPlaceholder,
+				}
+				return CobraMetadata{
+					m,
+					cobraCommand,
+				}
+			},
+		)
 
 		if len(flagSuggestions) > 0 {
 			return flagSuggestions, nil
@@ -158,20 +184,21 @@ func (m appModel) getLevel(command cobra.Command) int {
 	return level - 1
 }
 
-func (m appModel) getSubcommandSuggestions(command cobra.Command) []suggestion.Suggestion[CobraMetadata] {
+func (m appModel) getSubcommandSuggestions(
+	command cobra.Command,
+) ([]suggestion.Suggestion[CobraMetadata], error) {
 	suggestions := []suggestion.Suggestion[CobraMetadata]{}
 	level := m.getLevel(command)
 	for _, c := range command.Commands() {
 		if !slices.Contains(m.ignoreCmds, c.Name()) {
-			useParts := strings.Split(c.Use, " ")
-			placeholders := []string{}
+			useParts := strings.SplitN(c.Use, " ", 2)
+			placeholders := ""
 			if len(useParts) > 1 {
-				placeholders = useParts[1:]
+				placeholders = useParts[1]
 			}
-			args := []commandinput.PositionalArg{}
-
-			for _, arg := range placeholders {
-				args = append(args, m.textInput.NewPositionalArg(arg))
+			args, err := m.textInput.ParseUsage(placeholders)
+			if err != nil {
+				return nil, err
 			}
 
 			cobraCommand := c
@@ -184,21 +211,28 @@ func (m appModel) getSubcommandSuggestions(command cobra.Command) []suggestion.S
 				Text:        c.Name(),
 				Description: c.Short,
 				Metadata: CobraMetadata{
-					commandinput.CommandMetadata{PositionalArgs: args, Level: level + 1, ShowFlagPlaceholder: hasFlags},
+					commandinput.CommandMetadata{
+						PositionalArgs:      args,
+						Level:               level + 1,
+						ShowFlagPlaceholder: hasFlags,
+					},
 					cobraCommand,
 				},
 			})
 		}
 	}
 
-	return suggestions
+	return suggestions, nil
 }
 
 func (m appModel) Update(msg tea.Msg) (prompt.InputHandler[CobraMetadata], tea.Cmd) {
 	return m, nil
 }
 
-func (m appModel) Execute(input string, promptModel *prompt.Model[CobraMetadata]) (tea.Model, error) {
+func (m appModel) Execute(
+	input string,
+	promptModel *prompt.Model[CobraMetadata],
+) (tea.Model, error) {
 	if m.onExecutorStart != nil {
 		m.onExecutorStart(input, promptModel.SuggestionManager().SelectedSuggestion())
 	}
