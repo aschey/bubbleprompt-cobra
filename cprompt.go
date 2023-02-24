@@ -23,9 +23,11 @@ type Model struct {
 }
 type CompleterStart func(promptModel prompt.Model[CobraMetadata])
 
-type CompleterFinish func(suggestions []suggestion.Suggestion[CobraMetadata], err error) ([]suggestion.Suggestion[CobraMetadata], error)
-type ExecutorStart func(input string, selectedSuggestion *suggestion.Suggestion[CobraMetadata])
-type ExecutorFinish func(model tea.Model, err error) (tea.Model, error)
+type (
+	CompleterFinish func(suggestions []suggestion.Suggestion[CobraMetadata], err error) ([]suggestion.Suggestion[CobraMetadata], error)
+	ExecutorStart   func(input string, selectedSuggestion *suggestion.Suggestion[CobraMetadata])
+	ExecutorFinish  func(model tea.Model, err error) (tea.Model, error)
+)
 
 type appModel struct {
 	textInput         *commandinput.Model[CobraMetadata]
@@ -188,7 +190,6 @@ func (m appModel) getSubcommandSuggestions(
 	command cobra.Command,
 ) ([]suggestion.Suggestion[CobraMetadata], error) {
 	suggestions := []suggestion.Suggestion[CobraMetadata]{}
-	level := m.getLevel(command)
 	for _, c := range command.Commands() {
 		if !slices.Contains(m.ignoreCmds, c.Name()) {
 			useParts := strings.SplitN(c.Use, " ", 2)
@@ -213,7 +214,6 @@ func (m appModel) getSubcommandSuggestions(
 				Metadata: CobraMetadata{
 					commandinput.CommandMetadata{
 						PositionalArgs:      args,
-						Level:               level + 1,
 						ShowFlagPlaceholder: hasFlags,
 					},
 					cobraCommand,
