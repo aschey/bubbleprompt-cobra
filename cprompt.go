@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	prompt "github.com/aschey/bubbleprompt"
-	completers "github.com/aschey/bubbleprompt/completer"
+	"github.com/aschey/bubbleprompt/completer"
 	executors "github.com/aschey/bubbleprompt/executor"
 	"github.com/aschey/bubbleprompt/input/commandinput"
 	"github.com/aschey/bubbleprompt/suggestion"
@@ -38,6 +38,7 @@ type appModel struct {
 	onExecutorStart   ExecutorStart
 	onExecutorFinish  ExecutorFinish
 	ignoreCmds        []string
+	filterer          completer.Filterer[CobraMetadata]
 }
 
 type CobraMetadata struct {
@@ -117,7 +118,7 @@ func (m appModel) Complete(
 		}
 	}
 
-	result := completers.FilterHasPrefix(m.textInput.CurrentTokenBeforeCursor().Value, suggestions)
+	result := m.filterer.Filter(m.textInput.CurrentTokenBeforeCursor().Value, suggestions)
 	if m.onCompleterFinish != nil {
 		return m.onCompleterFinish(result, nil)
 	}
@@ -325,6 +326,10 @@ func (m *Model) SetOnExecutorFinish(onExecutorFinish ExecutorFinish) {
 	m.app.onExecutorFinish = onExecutorFinish
 }
 
+func (m *Model) SetFilterer(filterer completer.Filterer[CobraMetadata]) {
+	m.app.filterer = filterer
+}
+
 func ExecModel(cmd *cobra.Command, model tea.Model) error {
 	if interactive {
 		setModel(cmd.Root(), model)
@@ -336,11 +341,17 @@ func ExecModel(cmd *cobra.Command, model tea.Model) error {
 }
 
 func FilterShellCompletions(options []string, toComplete string) []string {
+	return FilterShellCompletionsWith(options, toComplete, completer.NewPrefixFilter[CobraMetadata]())
+}
+
+func FilterShellCompletionsWith(options []string, toComplete string,
+	filterer completer.Filterer[CobraMetadata],
+) []string {
 	suggestions := []suggestion.Suggestion[CobraMetadata]{}
 	for _, option := range options {
 		suggestions = append(suggestions, suggestion.Suggestion[CobraMetadata]{Text: option})
 	}
-	filtered := completers.FilterHasPrefix(toComplete, suggestions)
+	filtered := filterer.Filter(toComplete, suggestions)
 	results := []string{}
 	for _, result := range filtered {
 		results = append(results, result.Text)

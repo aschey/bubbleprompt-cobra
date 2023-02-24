@@ -14,8 +14,8 @@ github.com/arriqaaq/hash v0.1.2/go.mod h1:WB3wOwaJdkNPb8DX+J2YHivF9y+sJkXhM1B4gH
 github.com/arriqaaq/skiplist v0.1.6 h1:OtJ/6pcMFYnV22RwFUbz8CophthySLRq0vVAfWRAvzc=
 github.com/arriqaaq/zset v0.1.2 h1:vF/B95Unz/zA0Ttmc1XHCQVyxIXd7B6PNc3H4aCOdyo=
 github.com/arriqaaq/zset v0.1.2/go.mod h1:5DoabYGc0lHZnhhzZoYawG015X7i+bphIsa6qEekFuI=
-github.com/aschey/bubbleprompt v0.0.0-20230224175332-b0946d4ee098 h1:g0dL+h0acwXS+e/zyQsWpPOzzbs62aoq1S11gU0gCJI=
-github.com/aschey/bubbleprompt v0.0.0-20230224175332-b0946d4ee098/go.mod h1:7GAZ/xovaAAkDrv8Tudlc4SutjgEat4imTZ5sL9VlEs=
+github.com/aschey/bubbleprompt v0.0.0-20230224215623-04c16600a543 h1:san7+A66Y7EJF0etP9o8hW4id1TB/1ZTGERsIaDtYss=
+github.com/aschey/bubbleprompt v0.0.0-20230224215623-04c16600a543/go.mod h1:ei3oqQyUaocdCqOyDGIZiHoNo2eLNHXyAvxlFUBxmY0=
 github.com/aschey/bubbletea v0.20.1-0.20221129055038-2361f5df1cc5 h1:iPmgWdFS9bjF3W0wsxnkeyWRmyFS3WB7FESyDfq0rig=
 github.com/aschey/bubbletea v0.20.1-0.20221129055038-2361f5df1cc5/go.mod h1:JAfGK/3/pPKHTnAS8JIE2u9f61BjWTQY57RbT25aMXU=
 github.com/aschey/flashdb v0.0.0-20220928141429-3c4b618d1c38 h1:E1eKye8R13ERjuC0SkN9M07/HFLpaIfkIBuVwM1HHmI=
@@ -82,8 +82,8 @@ github.com/spf13/cobra v1.6.1/go.mod h1:IOw/AERYS7UzyrGinqmz6HLUo219MORXGxhbaJUq
 github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
 github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
-golang.org/x/exp v0.0.0-20230223210539-50820d90acfd h1:wtFuj4DoOcAdb82Zh2PI90xiaqgp7maYA7KxjQXVtkY=
-golang.org/x/exp v0.0.0-20230223210539-50820d90acfd/go.mod h1:CxIveKay+FTh1D0yPZemJVgC/95VzuuOLq5Qi4xnoYc=
+golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2 h1:Jvc7gsqn21cJHCmAWx0LiimpP18LZmUxkT5Mp7EZ1mI=
+golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2/go.mod h1:CxIveKay+FTh1D0yPZemJVgC/95VzuuOLq5Qi4xnoYc=
 golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
