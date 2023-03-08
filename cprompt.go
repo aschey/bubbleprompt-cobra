@@ -395,6 +395,7 @@ func NewPrompt(cmd *cobra.Command, options ...Option) Model {
 	app := appModel{
 		rootCmd:    rootCmd,
 		textInput:  textInput,
+		filterer:   completer.NewPrefixFilter[CobraMetadata](),
 		ignoreCmds: []string{curCmd, "completion", "help"},
 	}
 	prompt := buildAppModel(app)
