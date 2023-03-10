@@ -3,6 +3,8 @@ package cprompt
 import (
 	"context"
 
+	"github.com/aschey/bubbleprompt/input/commandinput"
+	"github.com/aschey/bubbleprompt/suggestion"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
@@ -19,22 +21,14 @@ func cmdContext(cmd *cobra.Command) context.Context {
 	return ctx
 }
 
-func keyPrefix(cmd *cobra.Command) string {
-	// Include parent name to ensure key is unique in case of duplicate command names
-	if cmd.HasParent() {
-		return cmd.Parent().Name() + cmd.Name()
-	}
-	return cmd.Name()
-}
-
 func contextVal(cmd *cobra.Command, key string) any {
 	ctx := cmdContext(cmd)
-	return ctx.Value(ctxKey(keyPrefix(cmd) + key))
+	return ctx.Value(ctxKey(key))
 }
 
 func updateContext(cmd *cobra.Command, key string, val any) {
 	ctx := cmdContext(cmd)
-	ctx = context.WithValue(ctx, ctxKey(keyPrefix(cmd)+key), val)
+	ctx = context.WithValue(ctx, ctxKey(key), val)
 	cmd.SetContext(ctx)
 }
 
@@ -49,6 +43,38 @@ func getPreservePlaceholder(cmd *cobra.Command, flag string) bool {
 	}
 
 	return val.(bool)
+}
+
+func Completer[T any](cmd *cobra.Command, f func(cmd *cobra.Command, args []string,
+	toComplete string) ([]suggestion.Suggestion[commandinput.CommandMetadata[T]], error),
+) {
+	updateContext(cmd, "completer", f)
+}
+
+func getCompleter[T any](cmd *cobra.Command) *func(cmd *cobra.Command, args []string,
+	toComplete string) ([]suggestion.Suggestion[commandinput.CommandMetadata[T]], error) {
+	val := contextVal(cmd, "completer")
+	if val == nil {
+		return nil
+	}
+	funcVal := val.(func(cmd *cobra.Command, args []string,
+		toComplete string) ([]suggestion.Suggestion[commandinput.CommandMetadata[T]], error))
+	return &funcVal
+}
+
+func GetSelectedSuggestion[T any](cmd *cobra.Command) *suggestion.Suggestion[commandinput.CommandMetadata[T]] {
+	val := contextVal(cmd.Root(), "selected")
+	if val == nil {
+		return nil
+	}
+	suggestion := val.(*suggestion.Suggestion[commandinput.CommandMetadata[T]])
+	return suggestion
+}
+
+func setSelectedSuggestion[T any](cmd *cobra.Command,
+	selected *suggestion.Suggestion[commandinput.CommandMetadata[T]],
+) {
+	updateContext(cmd.Root(), "selected", selected)
 }
 
 func ShowFlagPlaceholder(cmd *cobra.Command, show bool) {

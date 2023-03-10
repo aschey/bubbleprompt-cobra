@@ -1,13 +1,14 @@
 package db
 
 import (
-	"examples/keyvalue/model"
 	"fmt"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
+
+	"examples/keyvalue/model"
 
 	"github.com/arriqaaq/flashdb"
 	cprompt "github.com/aschey/bubbleprompt-cobra"
@@ -17,8 +18,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var dbMutex sync.Mutex
-var db *flashdb.FlashDB
+var (
+	dbMutex sync.Mutex
+	db      *flashdb.FlashDB
+)
 
 func LoadDb() error {
 	config := &flashdb.Config{Path: "./.bin"}
@@ -35,7 +38,6 @@ func init() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-
 }
 
 func getKeys(args []string, toComplete string, numAllowedArgs int, keyFunc func(tx *flashdb.Tx) []string) (keys []string, directive cobra.ShellCompDirective) {
@@ -46,7 +48,7 @@ func getKeys(args []string, toComplete string, numAllowedArgs int, keyFunc func(
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 	db.View(func(tx *flashdb.Tx) error {
-		keys = cprompt.FilterShellCompletions(keyFunc(tx), toComplete)
+		keys = cprompt.FilterShellCompletions[any](keyFunc(tx), toComplete)
 		return nil
 	})
 	return
@@ -142,7 +144,6 @@ func getExecCommand(methodName string, returnList bool) func(cmd *cobra.Command,
 			}
 			return nil
 		})
-
 		if err != nil {
 			return err
 		}
@@ -158,7 +159,6 @@ func getExecCommand(methodName string, returnList bool) func(cmd *cobra.Command,
 
 		return cprompt.ExecModel(cmd, retModel)
 	}
-
 }
 
 func getReflectParams(params []string, tx *flashdb.Tx, methodType reflect.Type) ([]reflect.Value, error) {

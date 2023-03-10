@@ -1,41 +1,44 @@
 package cprompt
 
-import prompt "github.com/aschey/bubbleprompt"
+import (
+	prompt "github.com/aschey/bubbleprompt"
+	"github.com/aschey/bubbleprompt/input/commandinput"
+)
 
-type Option func(model *Model)
+type Option[T any] func(model *Model[T])
 
-func WithIgnoreCmds(cmds ...string) Option {
-	return func(model *Model) {
+func WithIgnoreCmds[T any](cmds ...string) Option[T] {
+	return func(model *Model[T]) {
 		model.SetIgnoreCmds(cmds...)
 	}
 }
 
-func WithOnCompleterStart(onCompleterStart CompleterStart) Option {
-	return func(model *Model) {
+func WithOnCompleterStart[T any](onCompleterStart CompleterStart[T]) Option[T] {
+	return func(model *Model[T]) {
 		model.app.onCompleterStart = onCompleterStart
 	}
 }
 
-func WithOnCompleterFinish(onCompleterStart CompleterFinish) Option {
-	return func(model *Model) {
+func WithOnCompleterFinish[T any](onCompleterStart CompleterFinish[T]) Option[T] {
+	return func(model *Model[T]) {
 		model.app.onCompleterFinish = onCompleterStart
 	}
 }
 
-func WithOnExecutorStart(onExecutorStart ExecutorStart) Option {
-	return func(model *Model) {
+func WithOnExecutorStart[T any](onExecutorStart ExecutorStart[T]) Option[T] {
+	return func(model *Model[T]) {
 		model.app.onExecutorStart = onExecutorStart
 	}
 }
 
-func WithOnExecutorFinish(onExecutorFinish ExecutorFinish) Option {
-	return func(model *Model) {
+func WithOnExecutorFinish[T any](onExecutorFinish ExecutorFinish) Option[T] {
+	return func(model *Model[T]) {
 		model.app.onExecutorFinish = onExecutorFinish
 	}
 }
 
-func WithPromptOptions(options ...prompt.Option[CobraMetadata]) Option {
-	return func(model *Model) {
+func WithPromptOptions[T any](options ...prompt.Option[commandinput.CommandMetadata[T]]) Option[T] {
+	return func(model *Model[T]) {
 		prompt := buildAppModel(*model.app, options...)
 		model.prompt = prompt
 	}

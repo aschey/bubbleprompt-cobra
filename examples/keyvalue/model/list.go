@@ -36,8 +36,8 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	fn := itemStyle.Render
 	if index == m.Index() {
-		fn = func(s string) string {
-			return selectedItemStyle.Render("> " + s)
+		fn = func(strs ...string) string {
+			return selectedItemStyle.Render("> " + strs[0])
 		}
 	}
 
@@ -71,7 +71,6 @@ func (m ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ListModel) View() string {
-
 	return "\n" + m.list.View()
 }
 

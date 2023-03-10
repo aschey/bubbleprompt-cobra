@@ -4,8 +4,9 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"examples/keyvalue/db"
 	"time"
+
+	"examples/keyvalue/db"
 
 	prompt "github.com/aschey/bubbleprompt"
 	cprompt "github.com/aschey/bubbleprompt-cobra"
@@ -25,7 +26,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		promptModel := cprompt.NewPrompt(cmd)
+		promptModel := cprompt.NewPrompt[any](cmd)
 
 		model := model{inner: promptModel}
 		_, err := tea.NewProgram(&model, tea.WithFilter(prompt.MsgFilter)).Run()
@@ -34,7 +35,7 @@ to quickly create a Cobra application.`,
 }
 
 type model struct {
-	inner cprompt.Model
+	inner cprompt.Model[any]
 }
 
 func (m model) Init() tea.Cmd {
@@ -46,7 +47,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		_ = db.LoadDb()
 	}
 	model, cmd := m.inner.Update(msg)
-	m.inner = model.(cprompt.Model)
+	m.inner = model.(cprompt.Model[any])
 	return m, cmd
 }
 

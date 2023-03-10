@@ -17,58 +17,52 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type Model struct {
-	prompt prompt.Model[CobraMetadata]
-	app    *appModel
+type Model[T any] struct {
+	prompt prompt.Model[commandinput.CommandMetadata[T]]
+	app    *appModel[T]
 }
-type CompleterStart func(promptModel prompt.Model[CobraMetadata])
+type CompleterStart[T any] func(promptModel prompt.Model[commandinput.CommandMetadata[T]])
 
 type (
-	CompleterFinish func(suggestions []suggestion.Suggestion[CobraMetadata], err error) (
-		[]suggestion.Suggestion[CobraMetadata], error)
-	ExecutorStart  func(input string, selectedSuggestion *suggestion.Suggestion[CobraMetadata])
-	ExecutorFinish func(model tea.Model, err error) (tea.Model, error)
+	CompleterFinish[T any] func(suggestions []suggestion.Suggestion[commandinput.CommandMetadata[T]], err error) (
+		[]suggestion.Suggestion[commandinput.CommandMetadata[T]], error)
+	ExecutorStart[T any] func(input string, selectedSuggestion *suggestion.Suggestion[commandinput.CommandMetadata[T]])
+	ExecutorFinish       func(model tea.Model, err error) (tea.Model, error)
 )
 
-type appModel struct {
-	textInput         *commandinput.Model[CobraMetadata]
+type appModel[T any] struct {
+	textInput         *commandinput.Model[T]
 	rootCmd           *cobra.Command
-	onCompleterStart  CompleterStart
-	onCompleterFinish CompleterFinish
-	onExecutorStart   ExecutorStart
+	onCompleterStart  CompleterStart[T]
+	onCompleterFinish CompleterFinish[T]
+	onExecutorStart   ExecutorStart[T]
 	onExecutorFinish  ExecutorFinish
 	ignoreCmds        []string
-	filterer          completer.Filterer[CobraMetadata]
-}
-
-type CobraMetadata struct {
-	commandinput.CommandMetadata
-	cobraCommand *cobra.Command
+	filterer          completer.Filterer[commandinput.CommandMetadata[T]]
 }
 
 var interactive bool = false
 
-func (m Model) Init() tea.Cmd {
+func (m Model[T]) Init() tea.Cmd {
 	return m.prompt.Init()
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model[T]) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	p, cmd := m.prompt.Update(msg)
-	m.prompt = p.(prompt.Model[CobraMetadata])
+	m.prompt = p.(prompt.Model[commandinput.CommandMetadata[T]])
 	return m, cmd
 }
 
-func (m Model) View() string {
+func (m Model[T]) View() string {
 	return m.prompt.View()
 }
 
-func (m appModel) Complete(
-	promptModel prompt.Model[CobraMetadata],
-) ([]suggestion.Suggestion[CobraMetadata], error) {
+func (m appModel[T]) Complete(
+	promptModel prompt.Model[commandinput.CommandMetadata[T]],
+) ([]suggestion.Suggestion[commandinput.CommandMetadata[T]], error) {
 	if m.onCompleterStart != nil {
 		m.onCompleterStart(promptModel)
 	}
-	suggestions := []suggestion.Suggestion[CobraMetadata]{}
 
 	var err error = nil
 	cobraCommand := m.rootCmd
@@ -82,18 +76,67 @@ func (m appModel) Complete(
 	if err != nil {
 		return nil, err
 	}
-	text := m.textInput.CurrentTokenBeforeCursor().Value
+
 	level := m.getLevel(*cobraCommand)
 
-	if cobraCommand.ValidArgsFunction != nil {
-		suggestions = append(suggestions, m.getValidArgSuggestions(cobraCommand, level)...)
+	suggestions, err := m.getArgSuggestions(cobraCommand, level)
+	if err != nil {
+		return nil, err
 	}
+
+	if len(suggestions) > 0 {
+		if m.onCompleterFinish != nil {
+			return m.onCompleterFinish(suggestions, nil)
+		}
+		return suggestions, nil
+	}
+
 	subcommandSuggestions, err := m.getSubcommandSuggestions(*cobraCommand)
 	if err != nil {
 		return nil, err
 	}
 	suggestions = append(suggestions, subcommandSuggestions...)
 
+	flagSuggestions, err := m.getFlagSuggestions(cobraCommand, level)
+	if err != nil {
+		return nil, err
+	}
+	if len(flagSuggestions) > 0 {
+		return flagSuggestions, nil
+	}
+
+	result := m.filterer.Filter(m.textInput.CurrentTokenBeforeCursor().Value, suggestions)
+	if m.onCompleterFinish != nil {
+		return m.onCompleterFinish(result, nil)
+	}
+	return result, nil
+}
+
+func (m appModel[T]) getArgSuggestions(cobraCommand *cobra.Command, level int) (
+	[]suggestion.Suggestion[commandinput.CommandMetadata[T]], error,
+) {
+	suggestions := []suggestion.Suggestion[commandinput.CommandMetadata[T]]{}
+	completer := getCompleter[T](cobraCommand)
+	if completer != nil {
+		completed := m.textInput.CompletedArgsBeforeCursor()[level:]
+		completerSuggestions, err := (*completer)(
+			cobraCommand,
+			completed,
+			m.textInput.CurrentTokenBeforeCursorRoundDown().Value,
+		)
+		if err != nil {
+			return nil, err
+		}
+		suggestions = append(suggestions, completerSuggestions...)
+	} else if cobraCommand.ValidArgsFunction != nil {
+		suggestions = append(suggestions, m.getValidArgSuggestions(cobraCommand, level)...)
+	}
+	return suggestions, nil
+}
+
+func (m appModel[T]) getFlagSuggestions(cobraCommand *cobra.Command, level int) (
+	[]suggestion.Suggestion[commandinput.CommandMetadata[T]], error,
+) {
 	placeholderStr := usageArgs(cobraCommand.Use)
 	placeholders, err := m.textInput.ParseUsage(placeholderStr)
 	if err != nil {
@@ -107,27 +150,22 @@ func (m appModel) Complete(
 	flags := m.textInput.ParsedValue().Flags
 
 	// Always show flag suggestions if the user already entered a flag
-	if err == nil &&
-		(len(argsBeforeCursor)-level >= placeholdersBeforeFlags ||
-			strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor().Value, "-") ||
-			len(flags) > 0) {
-		flagSuggestions := m.getFLagSuggestions(text, cobraCommand)
+	if len(argsBeforeCursor)-level >= placeholdersBeforeFlags ||
+		strings.HasPrefix(m.textInput.CurrentTokenBeforeCursor().Value, "-") ||
+		len(flags) > 0 {
+		text := m.textInput.CurrentTokenBeforeCursor().Value
+		return m.findFLagSuggestions(text, cobraCommand), nil
 
-		if len(flagSuggestions) > 0 {
-			return flagSuggestions, nil
-		}
 	}
-
-	result := m.filterer.Filter(m.textInput.CurrentTokenBeforeCursor().Value, suggestions)
-	if m.onCompleterFinish != nil {
-		return m.onCompleterFinish(result, nil)
-	}
-	return result, nil
+	return []suggestion.Suggestion[commandinput.CommandMetadata[T]]{}, nil
 }
 
-func (m appModel) getFLagSuggestions(text string, cobraCommand *cobra.Command) []suggestion.Suggestion[CobraMetadata] {
+func (m appModel[T]) findFLagSuggestions(text string, cobraCommand *cobra.Command,
+) []suggestion.Suggestion[commandinput.CommandMetadata[T]] {
 	flags := []commandinput.FlagInput{}
-
+	if !cobraCommand.HasParent() {
+		return []suggestion.Suggestion[commandinput.CommandMetadata[T]]{}
+	}
 	cobraCommand.Flags().VisitAll(func(flag *pflag.Flag) {
 		if flag.Name == "help" {
 			return
@@ -151,37 +189,31 @@ func (m appModel) getFLagSuggestions(text string, cobraCommand *cobra.Command) [
 	return m.textInput.FlagSuggestions(
 		text,
 		flags,
-		func(flag commandinput.FlagInput) CobraMetadata {
-			m := commandinput.CommandMetadata{
+		func(flag commandinput.FlagInput) commandinput.CommandMetadata[T] {
+			m := commandinput.CommandMetadata[T]{
 				PreservePlaceholder: getPreservePlaceholder(cobraCommand, flag.Long),
 				FlagArgPlaceholder:  flag.ArgPlaceholder,
 			}
-			return CobraMetadata{
-				m,
-				cobraCommand,
-			}
+			return m
 		},
 	)
 }
 
-func (m appModel) getValidArgSuggestions(
+func (m appModel[T]) getValidArgSuggestions(
 	cobraCommand *cobra.Command, level int,
-) []suggestion.Suggestion[CobraMetadata] {
+) []suggestion.Suggestion[commandinput.CommandMetadata[T]] {
 	completed := m.textInput.CompletedArgsBeforeCursor()[level:]
 	validArgs, _ := cobraCommand.ValidArgsFunction(
 		cobraCommand,
 		completed,
 		m.textInput.CurrentTokenBeforeCursorRoundDown().Value,
 	)
-	suggestions := []suggestion.Suggestion[CobraMetadata]{}
+	suggestions := []suggestion.Suggestion[commandinput.CommandMetadata[T]]{}
 	for _, arg := range validArgs {
-		suggestions = append(suggestions, suggestion.Suggestion[CobraMetadata]{
+		suggestions = append(suggestions, suggestion.Suggestion[commandinput.CommandMetadata[T]]{
 			Text: arg,
-			Metadata: CobraMetadata{
-				commandinput.CommandMetadata{
-					ShowFlagPlaceholder: hasUserDefinedFlags(cobraCommand),
-				},
-				cobraCommand,
+			Metadata: commandinput.CommandMetadata[T]{
+				ShowFlagPlaceholder: hasUserDefinedFlags(cobraCommand),
 			},
 		})
 	}
@@ -189,7 +221,7 @@ func (m appModel) getValidArgSuggestions(
 	return suggestions
 }
 
-func (m appModel) getLevel(command cobra.Command) int {
+func (m appModel[T]) getLevel(command cobra.Command) int {
 	level := 0
 	for command.HasParent() {
 		level++
@@ -198,10 +230,10 @@ func (m appModel) getLevel(command cobra.Command) int {
 	return level - 1
 }
 
-func (m appModel) getSubcommandSuggestions(
+func (m appModel[T]) getSubcommandSuggestions(
 	command cobra.Command,
-) ([]suggestion.Suggestion[CobraMetadata], error) {
-	suggestions := []suggestion.Suggestion[CobraMetadata]{}
+) ([]suggestion.Suggestion[commandinput.CommandMetadata[T]], error) {
+	suggestions := []suggestion.Suggestion[commandinput.CommandMetadata[T]]{}
 	for _, c := range command.Commands() {
 		if !slices.Contains(m.ignoreCmds, c.Name()) {
 			placeholders := usageArgs(c.Use)
@@ -210,21 +242,17 @@ func (m appModel) getSubcommandSuggestions(
 				return nil, err
 			}
 
-			cobraCommand := c
 			hasFlags := hasUserDefinedFlags(c)
 
 			if len(args) > 0 && args[len(args)-1].Placeholder() == "[flags]" {
 				hasFlags = false
 			}
-			suggestions = append(suggestions, suggestion.Suggestion[CobraMetadata]{
+			suggestions = append(suggestions, suggestion.Suggestion[commandinput.CommandMetadata[T]]{
 				Text:        c.Name(),
 				Description: c.Short,
-				Metadata: CobraMetadata{
-					commandinput.CommandMetadata{
-						PositionalArgs:      args,
-						ShowFlagPlaceholder: hasFlags,
-					},
-					cobraCommand,
+				Metadata: commandinput.CommandMetadata[T]{
+					PositionalArgs:      args,
+					ShowFlagPlaceholder: hasFlags,
 				},
 			})
 		}
@@ -233,14 +261,15 @@ func (m appModel) getSubcommandSuggestions(
 	return suggestions, nil
 }
 
-func (m appModel) Update(msg tea.Msg) (prompt.InputHandler[CobraMetadata], tea.Cmd) {
+func (m appModel[T]) Update(msg tea.Msg) (prompt.InputHandler[commandinput.CommandMetadata[T]], tea.Cmd) {
 	return m, nil
 }
 
-func (m appModel) Execute(
+func (m appModel[T]) Execute(
 	input string,
-	promptModel *prompt.Model[CobraMetadata],
+	promptModel *prompt.Model[commandinput.CommandMetadata[T]],
 ) (tea.Model, error) {
+	setSelectedSuggestion(m.rootCmd, promptModel.SuggestionManager().SelectedSuggestion())
 	if m.onExecutorStart != nil {
 		m.onExecutorStart(input, promptModel.SuggestionManager().SelectedSuggestion())
 	}
@@ -306,27 +335,27 @@ func (m appModel) Execute(
 	return model, err
 }
 
-func (m *Model) SetIgnoreCmds(ignoreCmds ...string) {
+func (m *Model[T]) SetIgnoreCmds(ignoreCmds ...string) {
 	m.app.ignoreCmds = ignoreCmds
 }
 
-func (m *Model) SetOnCompleterStart(onCompleterStart CompleterStart) {
+func (m *Model[T]) SetOnCompleterStart(onCompleterStart CompleterStart[T]) {
 	m.app.onCompleterStart = onCompleterStart
 }
 
-func (m *Model) SetOnCompleterFinish(onCompleterFinish CompleterFinish) {
+func (m *Model[T]) SetOnCompleterFinish(onCompleterFinish CompleterFinish[T]) {
 	m.app.onCompleterFinish = onCompleterFinish
 }
 
-func (m *Model) SetOnExecutorStart(onExecutorStart ExecutorStart) {
+func (m *Model[T]) SetOnExecutorStart(onExecutorStart ExecutorStart[T]) {
 	m.app.onExecutorStart = onExecutorStart
 }
 
-func (m *Model) SetOnExecutorFinish(onExecutorFinish ExecutorFinish) {
+func (m *Model[T]) SetOnExecutorFinish(onExecutorFinish ExecutorFinish) {
 	m.app.onExecutorFinish = onExecutorFinish
 }
 
-func (m *Model) SetFilterer(filterer completer.Filterer[CobraMetadata]) {
+func (m *Model[T]) SetFilterer(filterer completer.Filterer[commandinput.CommandMetadata[T]]) {
 	m.app.filterer = filterer
 }
 
@@ -340,16 +369,16 @@ func ExecModel(cmd *cobra.Command, model tea.Model) error {
 	}
 }
 
-func FilterShellCompletions(options []string, toComplete string) []string {
-	return FilterShellCompletionsWith(options, toComplete, completer.NewPrefixFilter[CobraMetadata]())
+func FilterShellCompletions[T any](options []string, toComplete string) []string {
+	return FilterShellCompletionsWith[T](options, toComplete, completer.NewPrefixFilter[commandinput.CommandMetadata[T]]())
 }
 
-func FilterShellCompletionsWith(options []string, toComplete string,
-	filterer completer.Filterer[CobraMetadata],
+func FilterShellCompletionsWith[T any](options []string, toComplete string,
+	filterer completer.Filterer[commandinput.CommandMetadata[T]],
 ) []string {
-	suggestions := []suggestion.Suggestion[CobraMetadata]{}
+	suggestions := []suggestion.Suggestion[commandinput.CommandMetadata[T]]{}
 	for _, option := range options {
-		suggestions = append(suggestions, suggestion.Suggestion[CobraMetadata]{Text: option})
+		suggestions = append(suggestions, suggestion.Suggestion[commandinput.CommandMetadata[T]]{Text: option})
 	}
 	filtered := filterer.Filter(toComplete, suggestions)
 	results := []string{}
@@ -359,8 +388,9 @@ func FilterShellCompletionsWith(options []string, toComplete string,
 	return results
 }
 
-func buildAppModel(app appModel, opts ...prompt.Option[CobraMetadata]) prompt.Model[CobraMetadata] {
-	return prompt.New[CobraMetadata](
+func buildAppModel[T any](app appModel[T], opts ...prompt.Option[commandinput.CommandMetadata[T]],
+) prompt.Model[commandinput.CommandMetadata[T]] {
+	return prompt.New[commandinput.CommandMetadata[T]](
 		app,
 		app.textInput,
 		opts...,
@@ -382,7 +412,7 @@ func hasUserDefinedFlags(command *cobra.Command) bool {
 	return hasFlags
 }
 
-func NewPrompt(cmd *cobra.Command, options ...Option) Model {
+func NewPrompt[T any](cmd *cobra.Command, options ...Option[T]) Model[T] {
 	interactive = true
 	rootCmd := cmd.Root()
 	// Don't need usage messages popping up in the prompt, it just adds noise
@@ -391,16 +421,16 @@ func NewPrompt(cmd *cobra.Command, options ...Option) Model {
 
 	curCmd := cmd.Name()
 
-	textInput := commandinput.New[CobraMetadata]()
-	app := appModel{
+	textInput := commandinput.New[T]()
+	app := appModel[T]{
 		rootCmd:    rootCmd,
 		textInput:  textInput,
-		filterer:   completer.NewPrefixFilter[CobraMetadata](),
+		filterer:   completer.NewPrefixFilter[commandinput.CommandMetadata[T]](),
 		ignoreCmds: []string{curCmd, "completion", "help"},
 	}
 	prompt := buildAppModel(app)
 
-	m := Model{
+	m := Model[T]{
 		prompt: prompt,
 		app:    &app,
 	}
@@ -421,7 +451,7 @@ func usageArgs(s string) string {
 	return parts[1]
 }
 
-func (m Model) Start() error {
+func (m Model[T]) Start() error {
 	_, err := tea.NewProgram(m, tea.WithFilter(prompt.MsgFilter)).Run()
 	return err
 }

@@ -30,13 +30,12 @@ to quickly create a Cobra application.`,
 	},
 	Args: cobra.MinimumNArgs(2),
 	ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-
 		var choices []string
 		completeIndex := len(args)
 		if completeIndex == 0 {
-			choices = cprompt.FilterShellCompletions([]string{"abc", "abcd"}, toComplete)
+			choices = cprompt.FilterShellCompletions[any]([]string{"abc", "abcd"}, toComplete)
 		} else if completeIndex == 1 {
-			choices = cprompt.FilterShellCompletions([]string{"def", "defg"}, toComplete)
+			choices = cprompt.FilterShellCompletions[any]([]string{"def", "defg"}, toComplete)
 		}
 
 		return choices, cobra.ShellCompDirectiveDefault
@@ -47,9 +46,9 @@ func init() {
 	testCmd.Flags().IntP("testInt", "f", 1, "f flag")
 	testCmd.Flags().BoolP("testBool", "b", false, "b flag")
 	testCmd.Flags().BoolP("testBool2", "c", false, "c flag")
-	//testCmd.Flags().Lookup("testBool").NoOptDefVal = ""
+	// testCmd.Flags().Lookup("testBool").NoOptDefVal = ""
 	rootCmd.AddCommand(testCmd)
-	//cprompt.SetPlaceholders(testCmd, "<arg1>", "<arg2>", "[arg3]")
+	// cprompt.SetPlaceholders(testCmd, "<arg1>", "<arg2>", "[arg3]")
 
 	// Here you will define your flags and configuration settings.
 
