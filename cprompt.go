@@ -261,6 +261,10 @@ func (m appModel[T]) getSubcommandSuggestions(
 	return suggestions, nil
 }
 
+func (m appModel[T]) Init() tea.Cmd {
+	return nil
+}
+
 func (m appModel[T]) Update(msg tea.Msg) (prompt.InputHandler[commandinput.CommandMetadata[T]], tea.Cmd) {
 	return m, nil
 }
